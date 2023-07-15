@@ -1,18 +1,34 @@
 import copy
 import functools
-from typing import Iterator
+import random
 
 import gymnasium as gym
+import numpy as np
 import torch.nn
-from torch.nn import Parameter
+from gymnasium import Env
 
 from buffers.experience_replay import ExperienceReplay
-from networks.deep_q_network import DeepQNetwork
+
+
+class Config:
+    def __init__(self, **entries):
+        for key, value in entries.items():
+            if isinstance(value, dict):
+                self.__dict__.update({key: Config(**value)})
+                continue
+            self.__dict__.update(entries)
+
+
+def set_random_all(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    nprng = np.random.default_rng(seed)
 
 
 def get_cartpole_parameters():
     return {
-        "env": "CartPole-v1",
+        "env": {"name": "CartPole-v1", "num_envs": 4},
         "buffer": {
             "name": "ExperienceReplay",
             "params": {
@@ -22,6 +38,7 @@ def get_cartpole_parameters():
         },
         "q_network": "DeepQNetwork",
         "num_steps": int(3e6),
+        "initial_no_learn_steps": 1000,
         "update_freq": 4,
         "target_update_freq": 10000,
         "eval": {
@@ -49,8 +66,8 @@ def annealed_epsilon(initial_epsilon: float, end_epsilon: float, anneal_finished
     return initial_epsilon + (end_epsilon - initial_epsilon) * min(1., step / anneal_finished_step)
 
 
-def construct_parameter_obj(parameters: dict):
-    p = copy.deepcopy(parameters)
+def construct_parameter_obj(pm: dict):
+    p = copy.deepcopy(pm)
     buffer = {
         "ExperienceReplay": ExperienceReplay
     }
@@ -67,13 +84,14 @@ def construct_parameter_obj(parameters: dict):
         "rmsprop": torch.optim.RMSprop,
         "adam": torch.optim.Adam
     }
-    p["env"] = gym.make(p["env"])
-    p["buffer"] = buffer[p["buffer"]["name"]](**p["buffer"]["params"])
-    p["q_network"] = q_network[p["q_network"]](p["env"])
-    p["epsilon_scheduler"] = functools.partial(epsilon_scheduler[p["epsilon_scheduler"]["name"]],
-                                               *p["epsilon_scheduler"]["params"].values())
-    p["loss_fn"] = loss_fn[p["loss_fn"]]()
-    p["optimizer"] = optimizer[p["optimizer"]]
+    p["env"] = gym.vector.make(pm["env"]["name"], num_envs=pm["env"]["num_envs"])
+    p["eval"]["env"]: Env = gym.make(pm["env"]["name"])
+    p["buffer"] = buffer[pm["buffer"]["name"]](**pm["buffer"]["params"])
+    p["q_network"] = q_network[pm["q_network"]](p["eval"]["env"].observation_space.n, p["eval"]["env"].action_space.n)
+    p["epsilon_scheduler"] = functools.partial(epsilon_scheduler[pm["epsilon_scheduler"]["name"]],
+                                               *pm["epsilon_scheduler"]["params"].values())
+    p["loss_fn"] = loss_fn[pm["loss_fn"]]()
+    p["optimizer"] = optimizer[pm["optimizer"]](p["q_network"].parameters(), **pm["optimizer_args"])
     return p
 
 
@@ -92,9 +110,21 @@ def flatten_dictionary(dictionary, parent_key='', separator='.'):
     return flattened_dict
 
 
-def get_grad_norm(parameters: Iterator[Parameter]) -> float:
-    grads = []
-    for param in parameters:
-        grads.append(param.grad.view(-1))
-    grads = torch.cat(grads)
-    return torch.linalg.norm(grads).item()
+def test_parameter_obj():
+    from trainer import get_cartpole_parameters
+    parameters = get_cartpole_parameters()
+    p = construct_parameter_obj(parameters)
+    DqnWithExperienceReplay(**p)
+    p["epsilon_scheduler"](0)
+
+
+@patch.object(gym, "make")
+def test_evaluate_agent(mock):
+    mock1 = Mock()
+    mock.return_value = mock1
+    mock1.reset.return_value = 1, 2
+    mock1.step.side_effect = [(1, 1, True, True, ""), (1, 1, True, True, "")]
+    mock2 = Mock()
+    mock2.best_action.return_value = 0
+    eret = evaluate_agent(None, 1, mock2)
+    assert eret[1] == {'eval_mean_ep_rew': 1.0, 'eval_mean_ep_len': 1.0}
