@@ -47,7 +47,7 @@ class Dqn(Agent):
             state, action, next_state, reward, terminated = self.buffer.sample()
             target = self._get_target(reward, next_state, terminated, gamma)
             pred = self.vfa.val(state)
-            pred = torch.gather(pred, 1, action.unsqueeze(1)).flatten()
+            pred = torch.gather(pred, 1, action.unsqueeze(1)).squeeze(1)
             self.vfa.step(pred, target, callback)
         if step % self.target_update_freq == 0:
             self.target_vfa = copy.deepcopy(self.vfa)
@@ -67,5 +67,7 @@ class Dqn(Agent):
     def _get_target(self, reward: Tensor, next_state: Tensor, terminated: Tensor, gamma: float) -> Tensor:
         with torch.no_grad():
             target_output = self.target_vfa.val(next_state)
-            action = self.target_greedy_policy.choose_action(next_state, 0, lambda: None).unsqueeze(1)
-            return reward + (1 - terminated) * gamma * torch.gather(target_output, 1, action).flatten()
+            action = self.target_greedy_policy.choose_action(next_state, 0, lambda: None)
+            action = action.unsqueeze(1)
+            val_action = torch.gather(target_output, 1, action).squeeze(1)
+            return torch.where(terminated, reward, reward + gamma * val_action)

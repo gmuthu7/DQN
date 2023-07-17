@@ -6,22 +6,6 @@ import torch
 from vfa.neural_network import NeuralNetworkVfa
 
 
-@pytest.fixture()
-def vfa():
-    network = torch.nn.Sequential(
-        torch.nn.Linear(10, 64),
-        torch.nn.ReLU(),
-        torch.nn.Linear(64, 64),
-        torch.nn.ReLU(),
-        torch.nn.Linear(64, 3)
-    )
-    loss_fn = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(network.parameters(), lr=0.2)
-    clip_val = 10
-    vfa = NeuralNetworkVfa(network, loss_fn, optimizer, clip_val)
-    return vfa
-
-
 def test_vfa_val(vfa: NeuralNetworkVfa):
     x = torch.randn(size=(32, 10))
     y = vfa.val(x)

@@ -20,9 +20,9 @@ class Trainer:
         self.eval_env = eval_env
         self.eval_num_steps = eval_num_steps
 
-    def train(self, env: Env, agent: Agent, gamma: float, num_steps: int):
+    def train(self, env: Env, agent: Agent, gamma: float, num_steps: int, seed: int):
         env = RecordEpisodeStatistics(env)
-        state, info = env.reset()
+        state, info = env.reset(seed=seed)
         num_envs = state.shape[0]
         last_ep_returns = np.zeros(num_envs)
         last_ep_lens = np.zeros(num_envs)
@@ -34,14 +34,16 @@ class Trainer:
                 step += 1
                 action = agent.act_to_learn(state, step, self._agent_callback(step))
                 next_state, reward, terminated, truncated, info = env.step(action)
-                next_state = np.where(terminated | truncated, info["final_observation"], next_state)
-                agent.learn(state, action, next_state, reward, terminated, truncated, gamma,
+                real_next_state = next_state
+                if "final_observation" in info:
+                    real_next_state = np.where(terminated | truncated, info["final_observation"], next_state)
+                agent.learn(state, action, real_next_state, reward, terminated, truncated, gamma,
                             step, self._agent_callback(step))
                 if "episode" in info:
                     last_ep_returns = np.where(info["_episode"], info["episode"]["r"], last_ep_returns)
                     last_ep_lens = np.where(info["_episode"], info["episode"]["l"], last_ep_lens)
-                self.logger.log_metric("train_ep_len", np.mean(last_ep_returns), step)  # Optimize
-                self.logger.log_metric("train_ep_rew", np.mean(last_ep_lens), step)
+                self.logger.log_metric("train_ep_len", np.mean(last_ep_lens), step)  # Optimize
+                self.logger.log_metric("train_ep_rew", np.mean(last_ep_returns), step)
                 pbar.update()
                 if step % self.eval_freq == 0:
                     self.evaluator.evaluate(self.eval_env, agent, self.eval_num_steps,

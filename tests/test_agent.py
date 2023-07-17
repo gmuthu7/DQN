@@ -1,35 +1,34 @@
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
-import pytest
+import numpy as np
 import torch
 
-from agents.dqn import DqnWithExperienceReplay
+
+def test_get_target(dqn):
+    mock = Mock()
+    reward = torch.tensor([1., 1.])
+    next_state = torch.rand(size=(2, 3))
+    terminated = torch.tensor([True, False])
+    dqn.target_greedy_policy = mock
+    dqn.target_vfa = mock
+    mock.choose_action.return_value = torch.tensor([1, 1])
+    mock.val.return_value = torch.tensor([[1., 1.], [2., 3.]])
+    assert torch.equal(dqn._get_target(reward, next_state, terminated, 1.),
+                       torch.tensor([1., 4.]))
 
 
-@pytest.fixture()
-@patch.object(DqnWithExperienceReplay, "__init__", side_effect=lambda *args: None)
-def dqn_instance(mock_instance):
-    dqn = DqnWithExperienceReplay()
-    dqn.gamma = 1
-    dqn.target_network = Mock()
-    dqn.q_network = Mock()
-    dqn.target_network.return_value = Tensor([[1, 2, 3], [1, 2, 3]])
-    dqn.q_network.return_value = Tensor([[1, 2, 3], [1, 2, 3]])
-    return dqn
-
-
-def test_target(dqn_instance):
-    batch_input = Tensor([1, 5]), Tensor([[1, 2], [3, 4]]), Tensor([0, 0])
-    greedy_action = dqn_instance._greedy_action(dqn_instance.q_network, batch_input[1])
-    assert torch.equal(greedy_action, Tensor([2, 2]))
-    assert torch.equal(dqn_instance._get_target(*batch_input), Tensor([4, 8]))
-
-
-def test_choose_and_greedy_action(dqn_instance):
-    batch_input = (1, 5), ((1, 2), (3, 4))
-    dqn_instance.q_network.return_value = Tensor([2, 0.3])
-    with patch.object(torch, "rand") as mock:
-        mock.return_value.item.return_value = 2
-        with patch.object(dqn_instance, "epsilon_scheduler", return_value=1, create=True):
-            action = dqn_instance.choose_action(batch_input[1][0], -1)
-            assert action == 0
+def test_learn(dqn):
+    mock = Mock()
+    dqn.vfa.step = mock
+    state = np.random.rand(2, 10)
+    action = np.array([0, 1])
+    next_state = np.random.rand(2, 10)
+    reward = np.array([1., 2.])
+    terminated = np.array([False, True])
+    truncated = np.array([False, False])
+    gamma = 1.
+    step = 100
+    with patch("agents.dqn.copy") as m:
+        dqn.learn(state, action, next_state, reward, terminated, truncated, gamma, step, lambda x: None)
+        assert m.deepcopy.call_count == 1
+        assert mock.call_args_list[0][0][0].shape == (2,)

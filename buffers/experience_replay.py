@@ -9,17 +9,15 @@ class ExperienceReplay:
     def __init__(self, buffer_size: int, batch_size: int):
         self.batch_size = batch_size
         self.buffer_size = buffer_size
-        self.state = torch.tensor([])
-        self.action = torch.tensor([])
-        self.next_state = torch.tensor([])
-        self.reward = torch.tensor([])
-        self.terminated = torch.tensor([])
+        self.dtype = torch.float
+        self.state, self.action, self.next_state, self.reward, self.terminated = self._get_tensors([], [], [], [], [],
+                                                                                                   self.dtype)
         self.full = False
 
     def store(self, state: ndarray, action: ndarray, next_state: ndarray, reward: ndarray, terminated: ndarray):
         num_envs = state.shape[0]
-        action, next_state, reward, state, terminated = self._get_tensors(action, next_state, reward, state, terminated,
-                                                                          torch.float32)
+        state, action, next_state, reward, terminated = self._get_tensors(action, next_state, reward, state, terminated,
+                                                                          self.dtype)
         if self.full:
             self.state = torch.cat([self.state[num_envs:], state])
             self.action = torch.cat([self.action[num_envs:], action])
@@ -40,9 +38,10 @@ class ExperienceReplay:
         return self.state[pos], self.action[pos], self.next_state[pos], self.reward[pos], self.terminated[pos]
 
     def _get_tensors(self, action, next_state, reward, state, terminated, dtype):
-        state = torch.as_tensor(state, dtype=dtype)
-        action = torch.as_tensor(action)
-        next_state = torch.as_tensor(next_state, dtype=dtype)
-        reward = torch.as_tensor(reward, dtype=dtype)
-        terminated = torch.as_tensor(terminated)
-        return action, next_state, reward, state, terminated
+        with torch.no_grad():
+            state = torch.as_tensor(state, dtype=dtype)
+            action = torch.as_tensor(action, dtype=torch.int64)
+            next_state = torch.as_tensor(next_state, dtype=dtype)
+            reward = torch.as_tensor(reward, dtype=dtype)
+            terminated = torch.as_tensor(terminated, dtype=torch.bool)
+            return state, action, next_state, reward, terminated

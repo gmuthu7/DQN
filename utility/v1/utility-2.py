@@ -95,6 +95,15 @@ def construct_parameter_obj(pm: dict):
     return p
 
 
+def backup_code():
+    mock = Mock()
+    next_state = torch.ones((num_envs, 4))
+    reward = torch.ones((num_envs,))
+    terminated = torch.full((num_envs,), False)
+    truncated = torch.full((num_envs,), False)
+    ret1 = (next_state, reward, terminated, truncated, {})
+
+
 def flatten_dictionary(dictionary, parent_key='', separator='.'):
     flattened_dict = {}
     for key, value in dictionary.items():
