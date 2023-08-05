@@ -3,63 +3,11 @@ from typing import Dict
 import gymnasium as gym
 import torch.nn
 
+from scripts.config import CONFIG
 from simulators.evaluator import Evaluator
 from policies.greedy import GreedyPolicy
 from simulators.trainer import Trainer
-from loggers.utility import get_class
-
-CONFIG = {
-    "seed": 27,
-    "exp_name": "DQN_Cartpole",
-    "env": {
-        "name": "CartPole-v1",
-        "num_envs": 4,
-        "gamma": 0.99,
-    },
-    "agent": {
-        "name": "DoubleDqn",
-        "initial_no_learn_steps": 50_000,
-        "update_freq": 4,
-        "target_update_freq": 10_000,
-        "num_updates": 1
-    },
-    "trainer": {
-        "num_steps": 3_000_000,
-        "eval_freq": 5000,
-        "eval_num_episodes": 16,
-    },
-    "buffer": {
-        "name": "ExperienceReplay",
-        "buffer_size": 1_000_000,
-        "batch_size": 32
-    },
-    "policy": {
-        "name": "EpsilonPolicy",
-        "epsilon_scheduler": {
-            "name": "annealed_epsilon",
-            "end_epsilon": 0.1,
-            "anneal_finished_step": 1_000_000
-        }
-    },
-    "vfa": {
-        "name": "NeuralNetworkVfa",
-        "network": {
-            "name": "simple_neural_network_64"
-        },
-        "loss_fn": {
-            "name": "SmoothL1Loss"
-        },
-        "optimizer": {
-            "name": "RMSprop",
-            "lr": 0.0025,
-        },
-        "clip_grad_val": 0.
-    },
-    "logger": {
-        "name": "MlflowLogger",
-        "log_every": 5000
-    }
-}
+from loggers.utility import get_class, ConfigFromDict
 
 
 def run(config: Dict):
