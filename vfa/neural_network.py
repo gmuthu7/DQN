@@ -1,4 +1,4 @@
-from typing import Dict, Callable
+from typing import Dict, Callable, Self
 
 import torch
 import torch.nn as nn
@@ -11,11 +11,13 @@ class NeuralNetworkVfa:
                  network: nn.Module,
                  loss_fn: torch.nn.modules.loss,
                  optimizer: torch.optim.Optimizer,
+                 scheduler: torch.optim.lr_scheduler.LRScheduler,
                  clip_val: float):
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.clip_val = clip_val
         self.network = network
+        self.scheduler = scheduler
 
     def val(self, x: Tensor) -> Tensor:
         logits = self.network(x)
@@ -23,18 +25,32 @@ class NeuralNetworkVfa:
 
     def step(self, pred: Tensor, target: Tensor,
              callback: Callable[[Dict], None]):
+        callback_dict = {}
         loss = self.loss_fn(target, pred)
         self.optimizer.zero_grad()
         loss.backward()
         before_norm = self._get_grad_norm()
-        torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.clip_val)
-        after__norm = self._get_grad_norm()
+        self._clip_grad(callback_dict)
         self.optimizer.step()
-        callback({"train_mean_loss": loss,
-                  "train_mean_qfn": torch.mean(pred),
-                  "train_before_clip_grad": before_norm,
-                  "train_after_clip_grad": after__norm,
-                  })
+        if self.scheduler is not None:
+            self.scheduler.step()
+            callback_dict.update({"train_lr": self.scheduler.get_last_lr()})
+        callback_dict.update({"train_mean_loss": loss,
+                              "train_mean_qfn": torch.mean(pred),
+                              "train_before_clip_grad": before_norm,
+                              })
+        callback(callback_dict)
+
+    def clone(self, vfa: Self):
+        self.network.load_state_dict(vfa.network.state_dict())
+
+    def _clip_grad(self, callback_dict: Dict):
+        if self.clip_val > 0.:
+            torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.clip_val)
+            after_norm = self._get_grad_norm()
+            callback_dict.update({
+                "train_after_clip_grad": after_norm,
+            })
 
     def _get_grad_norm(self) -> float:
         grads = []

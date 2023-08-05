@@ -22,8 +22,10 @@ class EpsilonPolicy(Policy):
         callback({
             "train_epsilon": epsilon
         })
-        prob = torch.rand(size=(len(state),))
+        prob = torch.rand(state.shape[0])
         sample_actions = self.action_sampler()
+        if epsilon >= 1:
+            return sample_actions
         actions = self.wrapper_policy.choose_action(state, step, callback)
         actions[prob < epsilon] = sample_actions[prob < epsilon]
         return actions

@@ -4,6 +4,7 @@ import torch
 
 from policies.epsilon import EpsilonPolicy
 from policies.greedy import GreedyPolicy
+from loggers.utility import annealed_epsilon
 
 
 def test_greedy():
@@ -23,3 +24,9 @@ def test_epsilon(somemock):
     policy = EpsilonPolicy(epsilon_scheduler, action_sampler, wrapper_policy)
     assert torch.equal(policy.choose_action(torch.tensor([21312]), 0, lambda x: None),
                        torch.tensor([1, 0, 0]))
+
+
+def test_initial_epsilon():
+    fn = annealed_epsilon(50000, 0.1, 100000)
+    epsilon = fn(50000)
+    assert epsilon == 1.

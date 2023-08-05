@@ -4,14 +4,14 @@ import gymnasium as gym
 import pytest
 import torch
 
-from agents.dqn import Dqn
+from agents.double_dqn import DoubleDqn
 from buffers.experience_replay import ExperienceReplay
-from utility.utility import set_random_all
+from loggers.utility import set_random_all, simple_neural_network_64
 from vfa.neural_network import NeuralNetworkVfa
 
 
 @pytest.fixture
-def myseed():
+def seed():
     set_random_all(10)
 
 
@@ -28,19 +28,14 @@ def buffer() -> ExperienceReplay:
     return buffer
 
 
-@pytest.fixture()
+@pytest.fixture
 def vfa():
-    network = torch.nn.Sequential(
-        torch.nn.Linear(10, 64),
-        torch.nn.ReLU(),
-        torch.nn.Linear(64, 64),
-        torch.nn.ReLU(),
-        torch.nn.Linear(64, 3)
-    )
+    network = simple_neural_network_64(1, 4)
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(network.parameters(), lr=0.2)
+    scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1, end_factor=0.5, total_iters=100)
     clip_val = 10
-    vfa = NeuralNetworkVfa(network, loss_fn, optimizer, clip_val)
+    vfa = NeuralNetworkVfa(network, loss_fn, optimizer, scheduler, clip_val)
     return vfa
 
 
@@ -54,6 +49,6 @@ def agent_mock():
 
 @pytest.fixture
 def dqn(vfa, buffer):
-    mock = Mock()
-    dqn = Dqn(buffer, vfa, mock, 10, 10, 10)
+    policy = Mock()
+    dqn = DoubleDqn(buffer, vfa, policy, 10, 10, 10, 10)
     return dqn

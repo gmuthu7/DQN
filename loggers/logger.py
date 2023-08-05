@@ -1,7 +1,8 @@
 from abc import abstractmethod, ABC
-from typing import Any, Optional, Dict
+from typing import Any, Dict
 
 import mlflow
+from matplotlib.figure import Figure
 
 from agents.base_agent import Agent
 
@@ -18,11 +19,15 @@ class Logger(ABC):
         mlflow.start_run()
 
     @abstractmethod
-    def log_metric(self, key: Any, value, step: Optional[int] = None, **kwargs):
+    def log_metric(self, key: Any, value, step: int, **kwargs):
         pass
 
     @abstractmethod
-    def log_metrics(self, params: Dict, step: Optional[int] = None, **kwargs):
+    def log_metrics(self, params: Dict, step: int, **kwargs):
+        pass
+
+    @abstractmethod
+    def log_fig(self, fig: Figure):
         pass
 
     @abstractmethod

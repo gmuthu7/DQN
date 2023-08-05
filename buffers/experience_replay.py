@@ -16,7 +16,7 @@ class ExperienceReplay:
 
     def store(self, state: ndarray, action: ndarray, next_state: ndarray, reward: ndarray, terminated: ndarray):
         num_envs = state.shape[0]
-        state, action, next_state, reward, terminated = self._get_tensors(action, next_state, reward, state, terminated,
+        state, action, next_state, reward, terminated = self._get_tensors(state, action, next_state, reward, terminated,
                                                                           self.dtype)
         if self.full:
             self.state = torch.cat([self.state[num_envs:], state])
@@ -37,7 +37,7 @@ class ExperienceReplay:
         pos = torch.randint(0, self.state.shape[0], (self.batch_size,))
         return self.state[pos], self.action[pos], self.next_state[pos], self.reward[pos], self.terminated[pos]
 
-    def _get_tensors(self, action, next_state, reward, state, terminated, dtype):
+    def _get_tensors(self, state, action, next_state, reward, terminated, dtype):
         with torch.no_grad():
             state = torch.as_tensor(state, dtype=dtype)
             action = torch.as_tensor(action, dtype=torch.int64)

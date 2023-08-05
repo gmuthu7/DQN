@@ -8,7 +8,7 @@ def test_sample(buffer):
     assert a[0].shape[0] == buffer.batch_size
 
 
-@pytest.mark.usefixtures("myseed")
+@pytest.mark.usefixtures("seed")
 def test_store(buffer):
     num_envs = 1
     action, next_state, reward, state, terminated = get_sars(num_envs)
