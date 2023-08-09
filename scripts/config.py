@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import torch.nn
 from ray import tune
 
 # TODO: lr reduction, buffer randomization
@@ -15,18 +16,17 @@ SEARCH_SPACE = {
         "initial_no_learn_steps": tune.choice(np.arange(10000, 50000, 10000)),
         "update_freq": tune.randint(1, 10),
         "target_update_freq": tune.choice(np.arange(1000, 10000, 1000)),
-        "num_updates": tune.randint(1, 5)
+        "num_updates": tune.randint(1, 5),
+        "buffer": {
+            "buffer_size": tune.choice([10000, 50000, 100000]),
+            "batch_size": tune.choice([32, 256, 1024])
+        },
     },
     "vfa": {
         "optimizer": {
             "lr": tune.loguniform(0.0001, 0.9),
         },
         "clip_grad_val": tune.choice([0., 5., 10.])
-    },
-    "buffer": {
-        "name": "ExperienceReplay",
-        "buffer_size": tune.choice([10000, 50000, 100000]),
-        "batch_size": tune.choice([32, 256, 1024])
     },
     "policy": {
         "epsilon_scheduler": {
@@ -35,20 +35,21 @@ SEARCH_SPACE = {
         }
     },
     "logger": {
-        "log_every": 1000,
+        "name": "TuneMflowLogger",
+        "log_every": 1000
     },
     "ray": {
         "grace_period": 20,
         "max_t": 50,
         "reduction_factor": 2,
-        "storage_path": os.path.expanduser("/logs"),
         "resource_ratio": 0.5,
         "num_samples": 100,
         "n_initial_points": 10
     }
 }
-CONFIG = {
+CARTPOLE_CONFIG = {
     "seed": 27,
+    "device": 'cuda' if torch.cuda.is_available() else 'cpu',
     "exp_name": "DQN_Cartpole",
     "env": {
         "name": "CartPole-v1",
@@ -60,17 +61,17 @@ CONFIG = {
         "initial_no_learn_steps": 50_000,
         "update_freq": 4,
         "target_update_freq": 10_000,
-        "num_updates": 1
+        "num_updates": 1,
+        "buffer": {
+            "name": "ExperienceReplay",
+            "buffer_size": 1_000_000,
+            "batch_size": 32
+        },
     },
     "trainer": {
         "num_steps": 3_000_000,
         "eval_freq": 5000,
         "eval_num_episodes": 16,
-    },
-    "buffer": {
-        "name": "ExperienceReplay",
-        "buffer_size": 1_000_000,
-        "batch_size": 32
     },
     "policy": {
         "name": "EpsilonPolicy",
@@ -83,7 +84,8 @@ CONFIG = {
     "vfa": {
         "name": "NeuralNetworkVfa",
         "network": {
-            "name": "simple_neural_network_64"
+            "name": "SimpleNeuralNetwork",
+            "num_hidden": 64
         },
         "loss_fn": {
             "name": "SmoothL1Loss"
@@ -95,7 +97,9 @@ CONFIG = {
         "clip_grad_val": 0.
     },
     "logger": {
-        "name": "MlflowLogger",
+        "name": "MflowLogger",
         "log_every": 5000
     }
 }
+
+DEFAULT_STORAGE_DIRECTORY = os.path.expanduser("~/PycharmProjects/DQN/loggers/logs")

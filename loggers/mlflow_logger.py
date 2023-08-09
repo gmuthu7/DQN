@@ -23,9 +23,8 @@ class MlflowAgentWrapper(mlflow.pyfunc.PythonModel):
 
 class MlflowLogger(Logger):
 
-    def __init__(self, log_every: int, exp_name: str):
+    def __init__(self, log_every: int, *args):
         self.tracking_uri = "http://127.0.0.1:5000"
-        self.exp_name = exp_name
         self.log_every = log_every
         self.metrics = []
         self.last_step_metrics = []
@@ -49,8 +48,9 @@ class MlflowLogger(Logger):
             self.log_metric(key, params[key], step, **kwargs)
 
     def _flush_metrics(self):
-        self.client.log_batch(run_id=mlflow.active_run().info.run_id, metrics=self.metrics)
-        self.metrics = []
+        if len(self.metrics) > 0:
+            self.client.log_batch(run_id=self.run_id.info.run_id, metrics=self.metrics)
+            self.metrics = []
 
     def log_model(self, agent: Agent, **kwargs):
         mlflow.pyfunc.log_model(python_model=MlflowAgentWrapper(agent), artifact_path="model", **kwargs)
@@ -61,13 +61,12 @@ class MlflowLogger(Logger):
     def log_fig(self, fig: Figure):
         mlflow.log_figure(fig, fig._suptitle.get_text())
 
-    def start_run(self, **kwargs):
-        os.environ["MLFLOW_EXPERIMENT_NAME"] = self.exp_name
+    def start_run(self, exp_name: str, **kwargs):
+        os.environ["MLFLOW_EXPERIMENT_NAME"] = exp_name
         mlflow.set_tracking_uri(self.tracking_uri)
-        mlflow.start_run()
+        self.run_id = mlflow.start_run(nested=True)
 
     def terminate_run(self, **kwargs):
         self.metrics.extend(self.last_step_metrics)
-        if len(self.metrics) > 0:
-            self._flush_metrics()
+        self._flush_metrics()
         mlflow.end_run()

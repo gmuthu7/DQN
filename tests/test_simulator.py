@@ -1,11 +1,14 @@
+import copy
 from typing import Dict
 
 import gymnasium as gym
 import numpy as np
 import pytest
 from gymnasium.wrappers import RecordEpisodeStatistics
+from ray import tune
 
-from scripts.main import ConfigFromDict, CONFIG
+from scripts.config import SEARCH_SPACE
+from scripts.run import ConfigFromDict, CONFIG
 from simulators.evaluator import Evaluator
 from simulators.trainer import Trainer
 
@@ -42,8 +45,12 @@ def test_evaluate_callback(agent_mock):
 
 
 def test_dict():
-    config = ConfigFromDict(CONFIG)
-    print(config.vfa.optimizer.lr)
+    _CONFIG = copy.deepcopy(CONFIG)
+    config1 = ConfigFromDict(_CONFIG)
+    assert isinstance(config1.vfa.optimizer.lr, float)
+    _CONFIG.update(SEARCH_SPACE)
+    config2 = ConfigFromDict(_CONFIG)
+    assert config2.trainer.num_steps < config1.trainer.num_steps
 
 
 def callback1(d: Dict):

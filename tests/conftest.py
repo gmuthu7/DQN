@@ -5,9 +5,9 @@ import pytest
 import torch
 
 from agents.double_dqn import DoubleDqn
-from buffers.experience_replay import ExperienceReplay
+from agents.buffers.experience_replay import ExperienceReplay
 from loggers.utility import set_random_all, simple_neural_network_64
-from vfa.neural_network import NeuralNetworkVfa
+from agents.vfa import NeuralNetworkVfa
 
 
 @pytest.fixture

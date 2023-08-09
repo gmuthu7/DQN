@@ -15,7 +15,7 @@ class Logger(ABC):
         pass
 
     @abstractmethod
-    def start_run(self, **kwargs):
+    def start_run(self, exp_name: str, **kwargs):
         mlflow.start_run()
 
     @abstractmethod

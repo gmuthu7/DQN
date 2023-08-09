@@ -11,7 +11,7 @@ class NeuralNetworkVfa:
                  network: nn.Module,
                  loss_fn: torch.nn.modules.loss,
                  optimizer: torch.optim.Optimizer,
-                 scheduler: torch.optim.lr_scheduler.LRScheduler,
+                 scheduler: torch.optim.lr_scheduler.LRScheduler | None,
                  clip_val: float):
         self.loss_fn = loss_fn
         self.optimizer = optimizer

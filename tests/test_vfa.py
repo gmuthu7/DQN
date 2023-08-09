@@ -3,7 +3,7 @@ from typing import Dict
 import pytest
 import torch
 
-from vfa.neural_network import NeuralNetworkVfa
+from agents.vfa import NeuralNetworkVfa
 
 
 def test_vfa_val(vfa: NeuralNetworkVfa):
