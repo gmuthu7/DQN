@@ -4,10 +4,10 @@ import gymnasium as gym
 import pytest
 import torch
 
-from agents.double_dqn import DoubleDqn
 from agents.buffers.experience_replay import ExperienceReplay
-from loggers.utility import set_random_all, simple_neural_network_64
-from agents.vfa import NeuralNetworkVfa
+from agents.double_dqn import DoubleDqn
+from agents.vfa.neural_network import NeuralNetworkVfa
+from loggers.utility import set_random_all
 
 
 @pytest.fixture

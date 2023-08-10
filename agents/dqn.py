@@ -7,9 +7,9 @@ from torch import Tensor, arange
 
 from agents.base_agent import Agent
 from agents.buffers.experience_replay import ExperienceReplay
+from agents.vfa.neural_network import NeuralNetworkVfa
 from policies.base_policy import Policy
 from policies.greedy import GreedyPolicy
-from agents.vfa import NeuralNetworkVfa
 
 
 class Dqn(Agent):

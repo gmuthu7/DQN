@@ -7,11 +7,6 @@ from agents.base_agent import Agent
 
 
 class Evaluator:
-
-    @property
-    def best_metric_str(self):
-        return "eval_mean_ep_rew"
-
     def evaluate(self, eval_env: Env, agent: Agent, num_episodes: int, seed: int, callback: Callable):
         eval_env = RecordEpisodeStatistics(eval_env)
         state, info = eval_env.reset(seed=seed)
@@ -28,5 +23,5 @@ class Evaluator:
             if len(ep_rews) > num_episodes:
                 break
             state = next_state
-        return callback({"eval_mean_ep_rew": ep_rews,
-                         "eval_mean_ep_len": ep_lens})
+        return callback({"eval_mean_ep_rets": ep_rews,
+                         "eval_mean_ep_lens": ep_lens})

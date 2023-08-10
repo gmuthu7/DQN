@@ -6,12 +6,12 @@ from matplotlib.figure import Figure
 
 
 class ErrorPlotter:
-    def __init__(self, name: str):
+    def __init__(self, fig_name: str):
         self.metrics_std = np.array([])
         self.metrics_mean = np.array([])
         self.x_axis = np.array([])
         self.fig: Figure = plt.figure(figsize=(20, 10))
-        self.fig.suptitle(name)
+        self.fig.suptitle(fig_name)
         self.ax = self.fig.add_subplot()
 
     def add_point(self, metrics: Iterable, x: int):

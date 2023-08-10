@@ -5,9 +5,8 @@ import gymnasium as gym
 import numpy as np
 import pytest
 from gymnasium.wrappers import RecordEpisodeStatistics
-from ray import tune
 
-from scripts.config import SEARCH_SPACE
+from builders.config import SEARCH_SPACE
 from scripts.run import ConfigFromDict, CONFIG
 from simulators.evaluator import Evaluator
 from simulators.trainer import Trainer

@@ -3,7 +3,7 @@ from typing import Dict
 import gymnasium as gym
 import torch.nn
 
-from scripts.config import CONFIG
+from builders.config import CONFIG
 from simulators.evaluator import Evaluator
 from policies.greedy import GreedyPolicy
 from simulators.trainer import Trainer

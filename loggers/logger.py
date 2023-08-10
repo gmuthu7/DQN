@@ -15,10 +15,6 @@ class Logger(ABC):
         pass
 
     @abstractmethod
-    def start_run(self, exp_name: str, **kwargs):
-        mlflow.start_run()
-
-    @abstractmethod
     def log_metric(self, key: Any, value, step: int, **kwargs):
         pass
 
@@ -27,13 +23,9 @@ class Logger(ABC):
         pass
 
     @abstractmethod
-    def log_fig(self, fig: Figure):
+    def log_figure(self, fig: Figure, step: int):
         pass
 
     @abstractmethod
     def log_model(self, agent: Agent, **kwargs):
-        pass
-
-    @abstractmethod
-    def terminate_run(self, **kwargs):
         pass
