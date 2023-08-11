@@ -7,12 +7,23 @@ import torch
 from agents.buffers.experience_replay import ExperienceReplay
 from agents.double_dqn import DoubleDqn
 from agents.vfa.neural_network import NeuralNetworkVfa
+from builders.builder import Builder
 from loggers.utility import set_random_all
 
 
 @pytest.fixture
 def seed():
     set_random_all(10)
+
+
+@pytest.fixture
+def builder():
+    builder = Builder()
+    builder.train_env = Mock()
+    builder.train_env.single_observation_space.shape = [1]
+    builder.train_env.single_action_space.n = 4
+    builder.simple_neural_network(64)
+    return builder
 
 
 @pytest.fixture
@@ -29,8 +40,8 @@ def buffer() -> ExperienceReplay:
 
 
 @pytest.fixture
-def vfa():
-    network = simple_neural_network_64(1, 4)
+def vfa(builder: Builder):
+    network = builder.network
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(network.parameters(), lr=0.2)
     scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1, end_factor=0.5, total_iters=100)

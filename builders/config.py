@@ -4,6 +4,54 @@ import numpy as np
 import torch.nn
 from ray import tune
 
+SEARCH_NUM_STEPS = 200_000
+SEARCH_SPACE = {
+    "agent": {
+        "name": "DoubleDqn",
+        "initial_no_learn_steps": 10_000,
+        "update_freq": tune.randint(1, 10),
+        "target_update_freq": tune.choice(np.arange(500, 10000, 1000)),
+        "num_updates": tune.randint(1, 5),
+        "buffer": {
+            "name": "ExperienceReplay",
+            "buffer_size": SEARCH_NUM_STEPS,
+            "batch_size": tune.choice([32, 256, 1024])
+        },
+    },
+    "trainer": {
+        "num_steps": SEARCH_NUM_STEPS,
+        "eval_freq": 500,
+        "eval_num_episodes": 10,
+    },
+    "policy": {
+        "name": "EpsilonPolicy",
+        "epsilon_scheduler": {
+            "name": "annealed_epsilon",
+            "end_epsilon": tune.choice([0.1, 0.01]),
+            "anneal_finished_step": tune.choice(np.arange(10_000, SEARCH_NUM_STEPS, 5000))
+        }
+    },
+    "vfa": {
+        "name": "NeuralNetworkVfa",
+        "network": {
+            "name": "SimpleNeuralNetwork",
+            "num_hidden": 64
+        },
+        "loss_fn": {
+            "name": "SmoothL1Loss"
+        },
+        "optimizer": {
+            "name": "RMSprop",
+            "lr": tune.loguniform(0.00001, 0.001),
+        },
+        "clip_grad_val": tune.choice([0., 5., 10.])
+    },
+    "logger": {
+        "name": "RayTuneLogger",
+        "log_every": 500
+    }
+}
+
 # TODO: lr reduction, buffer randomization
 CARTPOLE_CONFIG = {
     "seed": 27,
@@ -16,7 +64,7 @@ CARTPOLE_CONFIG = {
     },
     "agent": {
         "name": "DoubleDqn",
-        "initial_no_learn_steps": 50_000,
+        "initial_no_learn_steps": 200,
         "update_freq": 4,
         "target_update_freq": 10_000,
         "num_updates": 1,
@@ -55,42 +103,9 @@ CARTPOLE_CONFIG = {
         "clip_grad_val": 0.
     },
     "logger": {
-        "name": "MflowLogger",
-        "log_every": 5000
+        "name": "RayTuneLogger",
+        "log_every": 10
     }
 }
-SEARCH_SPACE = {
-    "trainer": {
-        "num_steps": 100_000,
-        "eval_freq": 5000,
-        "eval_num_episodes": 10,
-    },
-    "agent": {
-        "initial_no_learn_steps": tune.choice(np.arange(10000, 50000, 10000)),
-        "update_freq": tune.randint(1, 10),
-        "target_update_freq": tune.choice(np.arange(1000, 10000, 1000)),
-        "num_updates": tune.randint(1, 5),
-        "buffer": {
-            "buffer_size": tune.choice([10000, 50000, 100000]),
-            "batch_size": tune.choice([32, 256, 1024])
-        },
-    },
-    "vfa": {
-        "optimizer": {
-            "lr": tune.loguniform(0.0001, 0.9),
-        },
-        "clip_grad_val": tune.choice([0., 5., 10.])
-    },
-    "policy": {
-        "epsilon_scheduler": {
-            "end_epsilon": tune.choice([0.1, 0.01]),
-            "anneal_finished_step": 50_000
-        }
-    },
-    "logger": {
-        "name": "TuneMflowLogger",
-        "log_every": 1000
-    }
-}
-
-DEFAULT_STORAGE_DIRECTORY = os.path.expanduser("/loggers/logs")
+DEFAULT_STORAGE_DIRECTORY = os.path.expanduser("~/PycharmProjects/DQN/loggers/logs")
+DEFAULT_MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"

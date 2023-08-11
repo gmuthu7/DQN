@@ -34,10 +34,10 @@ class NeuralNetworkVfa:
         self.optimizer.step()
         if self.scheduler is not None:
             self.scheduler.step()
-            callback_dict.update({"train_lr": self.scheduler.get_last_lr()})
-        callback_dict.update({"train_mean_loss": loss,
-                              "train_mean_qfn": torch.mean(pred),
-                              "train_before_clip_grad": before_norm,
+            callback_dict.update({"train/lr": self.scheduler.get_last_lr()})
+        callback_dict.update({"train/mean_loss": loss,
+                              "train/mean_qfn": torch.mean(pred),
+                              "train/before_clip_grad": before_norm,
                               })
         callback(callback_dict)
 
@@ -49,7 +49,7 @@ class NeuralNetworkVfa:
             torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.clip_val)
             after_norm = self._get_grad_norm()
             callback_dict.update({
-                "train_after_clip_grad": after_norm,
+                "train/after_clip_grad": after_norm,
             })
 
     def _get_grad_norm(self) -> float:

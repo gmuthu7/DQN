@@ -1,34 +1,12 @@
-import functools
+import random
 
-import gymnasium as gym
 import numpy as np
 import pytest
-import torch
 from matplotlib import pyplot as plt
 from ray import tune
 
-from agents.dqn import Dqn
 from loggers.error_plotter import ErrorPlotter
-from loggers.mlflow_logger import MlflowLogger
-from loggers.utility import annealed_epsilon
-from policies.epsilon import EpsilonPolicy
-from policies.greedy import GreedyPolicy
-
-
-def test_log_model(vfa, buffer):
-    def some_fn():
-        return torch.randint(0, 4, size=(4,))
-
-    env = gym.vector.make("CartPole-v1", num_envs=4)
-    policy = EpsilonPolicy(
-        functools.partial(annealed_epsilon, 1, 0.1, 1e4),
-        some_fn,
-        GreedyPolicy(vfa.val)
-    )
-    dqn = Dqn(buffer, vfa, policy, 10, 10, 10, 10)
-    logger = MlflowLogger(100, "mlflowexamples")
-    env.reset()
-    logger.log_model(dqn)
+from loggers.tune_logger import RayTuneLogger
 
 
 def test_plot():
@@ -38,14 +16,15 @@ def test_plot():
     assert len(x) == 1000
 
 
-@pytest.mark.usefixtures("seed")
 def test_plotter():
-    plotter = ErrorPlotter("mlflowexamples")
+    logger = RayTuneLogger("../loggers/logs/mlflowexamples/plot_test")
+    plotter = ErrorPlotter(f"mlflowexamples{np.random.rand()}")
+    logger.writer.add_scalar("test", 123, 123)
     for i in range(int(1e2)):
-        plotter.add_point(np.random.randn(10000) * 1000, i)
+        plotter.add_point(np.random.randint(10000) * 1, i)
     fig = plotter.plt_fig()
-    fig.show()
+    logger.log_figure(fig, 100)
     for i in range(int(1e2), int(1e4)):
         plotter.add_point(np.random.randn(10000) * 1000, i)
     fig = plotter.plt_fig()
-    fig.show()
+    logger.log_figure(fig, 200)

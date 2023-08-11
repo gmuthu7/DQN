@@ -20,7 +20,7 @@ class Trainer:
         self.eval_num_episodes = eval_num_episodes
         self.eval_seed = eval_seed
 
-    def train(self, env: Env, agent: Agent, gamma: float, num_steps: int, seed: int, callback: TrainerCallback):
+    def train(self, env: Env, agent: Agent, num_steps: int, gamma: float, seed: int, callback: TrainerCallback):
         env = RecordEpisodeStatistics(env)
         state, info = env.reset(seed=seed)
         num_envs = state.shape[0]
@@ -50,5 +50,8 @@ class Trainer:
                                             functools.partial(callback.after_evaluate, step, agent))
                 state = next_state
                 pbar.update(num_envs)
-                callback.step_end(step, {"train_ep_lens": last_ep_lens, "train_ep_rets": last_ep_returns})
+                callback.step_end(step,
+                                  {"train/ep_lens": last_ep_lens.tolist(), "train/ep_rets": last_ep_returns.tolist(),
+                                   "train/mean_ep_len": np.mean(last_ep_lens),
+                                   "train/mean_ep_ret": np.mean(last_ep_returns)})
                 step += num_envs

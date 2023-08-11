@@ -20,7 +20,7 @@ class EpsilonPolicy(Policy):
                       callback: Callable) -> Tensor:
         epsilon = self.epsilon_scheduler(step)
         callback({
-            "train_epsilon": epsilon
+            "train/epsilon": epsilon
         })
         prob = torch.rand(state.shape[0])
         sample_actions = self.action_sampler()

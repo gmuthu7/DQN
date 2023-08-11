@@ -5,6 +5,8 @@ from gymnasium.wrappers import RecordEpisodeStatistics
 
 from agents.base_agent import Agent
 
+import numpy as np
+
 
 class Evaluator:
     def evaluate(self, eval_env: Env, agent: Agent, num_episodes: int, seed: int, callback: Callable):
@@ -23,5 +25,7 @@ class Evaluator:
             if len(ep_rews) > num_episodes:
                 break
             state = next_state
-        return callback({"eval_mean_ep_rets": ep_rews,
-                         "eval_mean_ep_lens": ep_lens})
+        return callback({"eval/ep_rets": ep_rews,
+                         "eval/ep_lens": ep_lens,
+                         "eval/mean_ep_ret": np.mean(ep_rews),
+                         "eval/mean_ep_len": np.mean(ep_lens)})

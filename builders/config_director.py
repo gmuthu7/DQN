@@ -1,7 +1,15 @@
 from typing import Dict
 
 from builders.builder import Builder
-from loggers.utility import ConfigFromDict
+
+
+class ConfigFromDict:
+    def __init__(self, d=None):
+        for key, value in d.items():
+            if isinstance(value, dict):
+                setattr(self, key, ConfigFromDict(value))
+            else:
+                setattr(self, key, value)
 
 
 class ConfigDirector:
@@ -10,19 +18,24 @@ class ConfigDirector:
 
     def direct(self, builder: Builder):
         c = ConfigFromDict(self.config)
+        builder.env(c.env.name, c.env.num_envs)
+        builder.device(c.device)
         self._direct_logger(builder, c)
         self._direct_buffer(builder, c)
         self._direct_network(builder, c)
         self._direct_optimizer(builder, c)
         builder.l1_loss()
         builder.neural_network_vfa(c.vfa.clip_grad_val)
-        builder.env(c.env.name, c.env.num_envs)
+        builder.seed(c.seed)
+        builder.trainer_callback(c.logger.log_every)
+        builder.num_steps(c.trainer.num_steps)
+        builder.gamma(c.env.gamma)
         builder.initial_no_learn_steps(c.agent.initial_no_learn_steps)
         builder.annealed_epsilon(c.policy.epsilon_scheduler.end_epsilon,
                                  c.policy.epsilon_scheduler.anneal_finished_step)
         builder.epsilon_policy()
         builder.double_dqn(c.agent.update_freq, c.agent.target_update_freq, c.agent.num_updates)
-        builder.trainer(c.trainer.eval_freq, c.trainer.eval_num_episodes, c.seed)
+        builder.trainer(c.trainer.eval_freq, c.trainer.eval_num_episodes)
         return builder.build()
 
     def _direct_optimizer(self, builder: Builder, c: ConfigFromDict):
@@ -55,15 +68,6 @@ class ConfigDirector:
 
     def _direct_logger(self, builder: Builder, c: ConfigFromDict):
         match c.logger.name:
-            case "MlflowLogger":
-                builder.mlflow_logger(c.logger.log_every, c.env.exp_name)
+            case "RayTuneLogger":
+                builder.ray_tune_logger()
         return self
-
-
-class ConfigFromDict:
-    def __init__(self, d=None):
-        for key, value in d.items():
-            if isinstance(value, dict):
-                setattr(self, key, ConfigFromDict(value))
-            else:
-                setattr(self, key, value)
