@@ -6,15 +6,19 @@ from loggers.logger import Logger
 
 
 class TrainerCallback:
-    def __init__(self, logger: Logger, log_every: int):
+    def __init__(self, logger: Logger, log_every: int, params: Dict):
+        self.params = params
         self.plotters: Dict[str, ErrorPlotter] = {}
         self.logger = logger
         self.best_eval = -1
         self.roll_mean_ep_ret = 0.
         self.count = 0
-        self.step_metrics: Dict[str, Any] = {"eval/roll_mean_ep_ret": 0.}
+        self.step_metrics: Dict[str, Any] = {}
         self.log_every = log_every
         self.last_logged_step = 0
+
+    def train_start(self):
+        self.logger.log_params(self.params)
 
     def step_start(self, step: int):
         pass
@@ -32,6 +36,7 @@ class TrainerCallback:
                     self.step_metrics.pop(key)
 
             self.logger.log_metrics(self.step_metrics, step)
+        self.step_metrics = {}
 
     def during_learn(self, step: int, metrics: Dict):
         self.step_metrics.update(metrics)
@@ -43,6 +48,9 @@ class TrainerCallback:
         self.count += 1
         self.step_metrics["eval/roll_mean_ep_ret"] = self.roll_mean_ep_ret / self.count
         if eval_perf >= self.best_eval:
-            # self.logger.log_model(agent)
+            self.logger.log_model(agent, step)
             self.step_metrics["eval/best_ep_ret"] = eval_perf
             self.best_eval = eval_perf
+
+    def train_end(self):
+        self.logger.deinit()

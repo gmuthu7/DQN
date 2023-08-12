@@ -1,7 +1,7 @@
 import copy
 
 from builders.builder import Builder
-from builders.config import CARTPOLE_CONFIG, SEARCH_SPACE
+from builders.tune_config import CARTPOLE_CONFIG, SEARCH_SPACE
 from builders.config_director import ConfigDirector, ConfigFromDict
 
 

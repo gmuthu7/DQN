@@ -1,5 +1,5 @@
 import functools
-from typing import Tuple
+from typing import Tuple, Dict
 
 import gymnasium as gym
 import torch
@@ -11,7 +11,9 @@ from agents.buffers.experience_replay import ExperienceReplay
 from agents.double_dqn import DoubleDqn
 from agents.dqn import Dqn
 from agents.vfa.neural_network import NeuralNetworkVfa
-from loggers.tune_logger import RayTuneLogger
+from builders.tune_config import DEFAULT_MLFLOW_TRACKING_URI
+from loggers.mlflow_ray_tune_logger import MlflowRayTuneLogger
+from loggers.ray_tune_logger import RayTuneLogger
 from policies.epsilon import EpsilonPolicy
 from policies.greedy import GreedyPolicy
 from simulators.evaluator import Evaluator
@@ -33,8 +35,13 @@ class Builder:
     def device(self, _device: str):
         self._device = torch.device(_device)
 
-    def ray_tune_logger(self):
-        self.logger = RayTuneLogger(session.get_trial_dir())
+    def ray_tune_logger(self, track_metric: str):
+        self.logger = RayTuneLogger(track_metric, session.get_trial_dir())
+        return self
+
+    def mlflow_ray_tune_logger(self, track_metric: str, experiment_id: str, parent_run_id: str):
+        self.logger = MlflowRayTuneLogger(track_metric, DEFAULT_MLFLOW_TRACKING_URI, experiment_id, parent_run_id,
+                                          session.get_trial_dir())
         return self
 
     def experience_replay_buffer(self, buffer_size: int, batch_size: int):
@@ -81,6 +88,8 @@ class Builder:
         def fn(initial_epsilon: float, end_epsilon: float, anneal_finished_step: int, step: int) -> float:
             return initial_epsilon + (end_epsilon - initial_epsilon) * min(1., step / anneal_finished_step)
 
+        if self.no_learn >= anneal_finished_step:
+            raise ValueError("No learn is is > anneal_finished_step")
         initial_epsilon = (1. - end_epsilon * min(1., self.no_learn / anneal_finished_step)) / (
                 1. - min(1., self.no_learn / anneal_finished_step))
         self.epsilon_scheduler = functools.partial(fn, initial_epsilon, end_epsilon, anneal_finished_step)
@@ -102,8 +111,8 @@ class Builder:
                                self.no_learn, num_updates)
         return self
 
-    def trainer_callback(self, log_every: int):
-        self.callback = TrainerCallback(self.logger, log_every)
+    def trainer_callback(self, log_every: int, params: Dict):
+        self.callback = TrainerCallback(self.logger, log_every, params)
         return self
 
     def seed(self, val: int):
@@ -122,5 +131,5 @@ class Builder:
         self.simulator = Trainer(eval_freq, eval_num_episodes, self.eval_env, Evaluator(), self._seed)
         return self
 
-    def build(self) -> Tuple[Trainer, torch.device, VectorEnv, Agent, int, float, int, TrainerCallback]:
-        return self.simulator, self._device, self.train_env, self.agent, self._num_steps, self._gamma, self._seed, self.callback
+    def build(self) -> Tuple[Trainer, torch.device, TrainerCallback, VectorEnv, Agent, int, float, int]:
+        return self.simulator, self._device, self.callback, self.train_env, self.agent, self._num_steps, self._gamma, self._seed

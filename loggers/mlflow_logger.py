@@ -1,7 +1,8 @@
 import os
 import time
-from typing import Any, Dict
+from typing import Dict
 
+import cloudpickle
 import mlflow
 from matplotlib.figure import Figure
 from mlflow.entities import Metric
@@ -23,50 +24,39 @@ class MlflowAgentWrapper(mlflow.pyfunc.PythonModel):
 
 class MlflowLogger(Logger):
 
-    def __init__(self, log_every: int, *args):
-        self.tracking_uri = "http://127.0.0.1:5000"
-        self.log_every = log_every
-        self.metrics = []
-        self.last_step_metrics = []
-        self.last_logged_step = 0
-        self.last_step = 0
+    def __init__(self, tracking_uri: str, experiment_id: str, parent_run_id: str, tmp_dir: str):
+        os.environ["MLFLOW_TRACKING_URI"] = tracking_uri
         self.client = MlflowClient()
+        self.tmp_dir = tmp_dir
+        if parent_run_id is None:
+            self.run = self.client.create_run(experiment_id)
+        else:
+            self.run = self.client.create_run(experiment_id, tags={"mlflow.parentRunId": parent_run_id})
+        self.run_id = self.run.info.run_id
 
-    def log_metric(self, key: Any, value: Any, step: int, **kwargs):
-        if step != self.last_step:
-            self.last_step = step
-            self.metrics.extend(self.last_step_metrics)
-            self.last_step_metrics = []
-            if (step - self.last_logged_step) >= self.log_every:
-                self.last_logged_step = step
-                self._flush_metrics()
-        metric = Metric(key, value, int(time.time() * 1000), step)
-        self.last_step_metrics.append(metric)
+    def log_params(self, params: Dict):
+        for key, value in params.items():
+            self.client.log_param(self.run_id, key, value)
 
-    def log_metrics(self, params: Dict, step: int, **kwargs):
-        for key in params:
-            self.log_metric(key, params[key], step, **kwargs)
+    def log_metrics(self, params: Dict, step: int):
+        metrics = []
+        for key, value in params.items():
+            metrics.append(Metric(key, value, int(time.time() * 1000), step))
+        self.client.log_batch(run_id=self.run_id, metrics=metrics)
 
-    def _flush_metrics(self):
-        if len(self.metrics) > 0:
-            self.client.log_batch(run_id=self.run_id.info.run_id, metrics=self.metrics)
-            self.metrics = []
+    def log_model(self, agent: Agent, step: int):
+        pass
+        # local_path = os.path.join(self.tmp_dir, "agent.pkl")
+        # artifact_path = "model/agent.pkl"
+        # with open(os.path.join(self.tmp_dir, local_path), "wb") as f:
+        #     cloudpickle.dump(agent, f)
+        # self.client.log_artifact(self.run_id, local_path, artifact_path)
+        # mlflow.pyfunc.log_model(python_model=MlflowAgentWrapper(agent), artifact_path="model", **kwargs)
 
-    def log_model(self, agent: Agent, **kwargs):
-        mlflow.pyfunc.log_model(python_model=MlflowAgentWrapper(agent), artifact_path="model", **kwargs)
+    def log_figure(self, fig: Figure, step: int):
+        artifact_path = f"{fig._suptitle.get_text()}.png"
+        self.client.log_figure(self.run_id, fig, artifact_path)
+        # mlflow.log_figure(fig, fig._suptitle.get_text())
 
-    def log_params(self, params: Dict, **kwargs):
-        mlflow.log_params(params)
-
-    def log_fig(self, fig: Figure):
-        mlflow.log_figure(fig, fig._suptitle.get_text())
-
-    def start_run(self, exp_name: str, **kwargs):
-        os.environ["MLFLOW_EXPERIMENT_NAME"] = exp_name
-        mlflow.set_tracking_uri(self.tracking_uri)
-        self.run_id = mlflow.start_run(nested=True)
-
-    def terminate_run(self, **kwargs):
-        self.metrics.extend(self.last_step_metrics)
-        self._flush_metrics()
-        mlflow.end_run()
+    def deinit(self):
+        self.client.set_terminated(self.run_id)

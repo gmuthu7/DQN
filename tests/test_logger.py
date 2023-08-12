@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from ray import tune
 
 from loggers.error_plotter import ErrorPlotter
-from loggers.tune_logger import RayTuneLogger
+from loggers.ray_tune_logger import RayTuneLogger
 
 
 def test_plot():

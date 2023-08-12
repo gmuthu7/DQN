@@ -1,9 +1,6 @@
 from typing import Dict
 
-import torch.cuda
-
 from builders.builder import Builder
-from builders.config import CARTPOLE_CONFIG
 from builders.config_director import ConfigDirector
 from builders.smoke_config import SMOKE_CONFIG
 
@@ -12,9 +9,9 @@ def run(config: Dict):
     config_director = ConfigDirector(config)
     builder = Builder()
     rets = config_director.direct(builder)
-    trainer, device, args = rets[0], rets[1], rets[2:]
+    trainer, device, callback, args = rets[0], rets[1], rets[2], rets[3:]
     with device:
-        trainer.train(*args)
+        trainer.train(*args, callback)
 
 
 if __name__ == "__main__":

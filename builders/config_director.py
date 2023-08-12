@@ -27,7 +27,7 @@ class ConfigDirector:
         builder.l1_loss()
         builder.neural_network_vfa(c.vfa.clip_grad_val)
         builder.seed(c.seed)
-        builder.trainer_callback(c.logger.log_every)
+        builder.trainer_callback(c.logger.log_every, self.config)
         builder.num_steps(c.trainer.num_steps)
         builder.gamma(c.env.gamma)
         builder.initial_no_learn_steps(c.agent.initial_no_learn_steps)
@@ -69,5 +69,7 @@ class ConfigDirector:
     def _direct_logger(self, builder: Builder, c: ConfigFromDict):
         match c.logger.name:
             case "RayTuneLogger":
-                builder.ray_tune_logger()
+                builder.ray_tune_logger(c.logger.track_metric)
+            case "MlflowRayTuneLogger":
+                builder.mlflow_ray_tune_logger(c.logger.track_metric, c.logger.experiment_id, c.logger.parent_run_id)
         return self
