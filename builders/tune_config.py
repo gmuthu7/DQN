@@ -4,7 +4,7 @@ import numpy as np
 import torch.nn
 from ray import tune
 
-SEARCH_NUM_STEPS = 200_000
+SEARCH_NUM_STEPS = 217_000
 NO_LEARN = 10_000
 EVAL_FREQ = 500
 SEARCH_SPACE = {
@@ -37,7 +37,7 @@ SEARCH_SPACE = {
         "name": "EpsilonPolicy",
         "epsilon_scheduler": {
             "name": "annealed_epsilon",
-            "end_epsilon": tune.choice([0.1, 0.01]),
+            "end_epsilon": tune.loguniform(0.001, 0.1),
             "anneal_finished_step": tune.choice(np.arange(NO_LEARN + 10_000, SEARCH_NUM_STEPS, 5000))
         }
     },
@@ -52,9 +52,9 @@ SEARCH_SPACE = {
         },
         "optimizer": {
             "name": "RMSprop",
-            "lr": tune.loguniform(0.00001, 0.01),
+            "lr": tune.loguniform(0.000001, 0.001),
         },
-        "clip_grad_val": tune.choice([0., 5., 10.])
+        "clip_grad_val": tune.choice([0., 10.])
     },
     "logger": {
         "name": "MlflowRayTuneLogger",

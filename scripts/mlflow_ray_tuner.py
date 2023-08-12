@@ -1,7 +1,6 @@
 import os
 from typing import Dict, Callable
 
-import ray
 from mlflow import MlflowClient
 from ray import tune
 from ray.air import RunConfig
@@ -10,6 +9,7 @@ from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.search.hyperopt import HyperOptSearch
 
 from builders.tune_config import SEARCH_SPACE, DEFAULT_MLFLOW_TRACKING_URI
+from loggers.ray_tune_logger_callback import RayTuneLoggerCallback
 from scripts.ray_tuner import RayTuner
 from scripts.run import run
 
@@ -27,7 +27,7 @@ class MlflowRayTuner(RayTuner):
             filename = self._get_auto_increment_filename("run", storage_path)
             run_id = self._setup_mlflow(client, config, filename)
             hyperopt_search = HyperOptSearch(n_initial_points=20)
-            hyperband_scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", grace_period=15000,
+            hyperband_scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", grace_period=31_000,
                                                           max_t=config["trainer"]["num_steps"], reduction_factor=3)
             trainable_with_resources = tune.with_resources(train_fn, {"cpu": 0.5,
                                                                       "gpu": 1. / 32. if config[
@@ -40,6 +40,7 @@ class MlflowRayTuner(RayTuner):
                                             scheduler=hyperband_scheduler,
                                             metric=config["logger"]["track_metric"], mode="max"),
                 run_config=RunConfig(name=filename, storage_path=storage_path,
+                                     callbacks=[RayTuneLoggerCallback()],
                                      verbose=0)
             )
             result_grid = tuner.fit()

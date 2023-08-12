@@ -29,9 +29,10 @@ class MlflowLogger(Logger):
         self.client = MlflowClient()
         self.tmp_dir = tmp_dir
         if parent_run_id is None:
-            self.run = self.client.create_run(experiment_id)
+            self.run = self.client.create_run(experiment_id, tags={"tmp_dir": tmp_dir})
         else:
-            self.run = self.client.create_run(experiment_id, tags={"mlflow.parentRunId": parent_run_id})
+            self.run = self.client.create_run(experiment_id,
+                                              tags={"mlflow.parentRunId": parent_run_id, "tmp_dir": tmp_dir})
         self.run_id = self.run.info.run_id
 
     def log_params(self, params: Dict):
