@@ -14,15 +14,11 @@ from scripts.ray_tuner import RayTuner
 from scripts.run import run
 
 
-# TODO: Need a way to log figure and checkpoint/model since its giving error now
-# TODO: Find a way to disconnect log_every and eval_freq aka separate out mlflow and ray tune logging
-# TODO: Nested runs
-# TODO: Remove config from metrics by implementing logger callback,
-# TODO: also close env so that it doesnt throw that damn error
-
+# TODO: Need a way to log checkpoint/model since its giving error now
+# TODO: Disable tensorboard logging in ray tune and remove pbar/printing for performance improvement
 class MlflowRayTuner(RayTuner):
     def ray_tune(self, config: Dict, train_fn: Callable) -> ResultGrid:
-        ray.init(local_mode=True)
+        # ray.init(local_mode=True)
         os.environ["MLFLOW_TRACKING_URI"] = DEFAULT_MLFLOW_TRACKING_URI
         client = MlflowClient()
         run_id = None

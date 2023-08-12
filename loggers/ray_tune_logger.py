@@ -23,8 +23,8 @@ class RayTuneLogger(Logger):
     def log_metrics(self, params: Dict, step: int):
         p = {}
         if self.track_metric_str not in params:
-            p[self.track_metric_str] = self.last_track_metric_val
-        self.last_track_metric_val = p[self.track_metric_str]
+            params[self.track_metric_str] = self.last_track_metric_val
+        self.last_track_metric_val = params[self.track_metric_str]
         for key, value in params.items():
             if isinstance(value, Tensor):
                 p[key] = value.detach().cpu().item()
