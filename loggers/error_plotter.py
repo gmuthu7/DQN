@@ -10,7 +10,7 @@ class ErrorPlotter:
         self.metrics_std = np.array([])
         self.metrics_mean = np.array([])
         self.x_axis = np.array([])
-        self.fig: Figure = plt.figure(figsize=(10, 5))
+        self.fig: Figure = plt.figure(figsize=(12, 5))
         self.fig.suptitle(fig_name)
         self.ax = self.fig.add_subplot()
 
