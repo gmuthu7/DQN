@@ -42,6 +42,7 @@ class MlflowLogger(Logger):
         metrics = []
         for key, value in params.items():
             metrics.append(Metric(key, value, int(time.time() * 1000), step))
+        metrics.append(Metric("train/step", step, int(time.time() * 1000), step))
         self.client.log_batch(run_id=self.run_id, metrics=metrics)
 
     def log_model(self, agent: Agent, step: int):

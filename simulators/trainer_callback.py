@@ -1,5 +1,7 @@
 from typing import Dict, Any
 
+from ray._private.dict import flatten_dict
+
 from agents.base_agent import Agent
 from loggers.error_plotter import ErrorPlotter
 from loggers.logger import Logger
@@ -7,7 +9,7 @@ from loggers.logger import Logger
 
 class TrainerCallback:
     def __init__(self, logger: Logger, log_every: int, params: Dict):
-        self.params = params
+        self.params = flatten_dict(params)
         self.plotters: Dict[str, ErrorPlotter] = {}
         self.logger = logger
         self.best_eval = -1

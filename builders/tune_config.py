@@ -52,7 +52,7 @@ SEARCH_SPACE = {
         },
         "optimizer": {
             "name": "RMSprop",
-            "lr": tune.loguniform(0.00001, 0.001),
+            "lr": tune.loguniform(0.00001, 0.01),
         },
         "clip_grad_val": tune.choice([0., 5., 10.])
     },

@@ -3,11 +3,10 @@ import functools
 import numpy as np
 from gymnasium import Env
 from gymnasium.wrappers import RecordEpisodeStatistics
-from tqdm import tqdm
 
 from agents.base_agent import Agent
-from simulators.trainer_callback import TrainerCallback
 from simulators.evaluator import Evaluator
+from simulators.trainer_callback import TrainerCallback
 
 
 class Trainer:
@@ -30,34 +29,32 @@ class Trainer:
             last_ep_lens = np.zeros(num_envs)
             last_eval_step = 1
             step = 1
-            with tqdm(total=num_steps) as pbar:
-                while step < num_steps:
-                    callback.step_start(step)
-                    action = agent.act_to_learn(state, step, functools.partial(callback.during_learn, step))
-                    next_state, reward, terminated, truncated, info = env.step(action)
-                    idxs = terminated | truncated
-                    real_next_state = next_state.copy()
-                    if "final_observation" in info:
-                        real_next_state[idxs] = np.stack(info["final_observation"][idxs])
-                    if "episode" in info:
-                        last_ep_returns = np.where(idxs, info["episode"]["r"], last_ep_returns)
-                        last_ep_lens = np.where(idxs, info["episode"]["l"], last_ep_lens)
+            while step < num_steps:
+                callback.step_start(step)
+                action = agent.act_to_learn(state, step, functools.partial(callback.during_learn, step))
+                next_state, reward, terminated, truncated, info = env.step(action)
+                idxs = terminated | truncated
+                real_next_state = next_state.copy()
+                if "final_observation" in info:
+                    real_next_state[idxs] = np.stack(info["final_observation"][idxs])
+                if "episode" in info:
+                    last_ep_returns = np.where(idxs, info["episode"]["r"], last_ep_returns)
+                    last_ep_lens = np.where(idxs, info["episode"]["l"], last_ep_lens)
 
-                    agent.learn(state, action, real_next_state, reward, terminated, truncated, gamma,
-                                step, functools.partial(callback.during_learn, step))
+                agent.learn(state, action, real_next_state, reward, terminated, truncated, gamma,
+                            step, functools.partial(callback.during_learn, step))
 
-                    if (step - last_eval_step) >= self.eval_freq:
-                        last_eval_step = step
-                        self.evaluator.evaluate(self.eval_env, agent, self.eval_num_episodes, self.eval_seed,
-                                                functools.partial(callback.after_evaluate, step, agent))
-                    state = next_state
-                    pbar.update(num_envs)
-                    callback.step_end(step,
-                                      {"train/ep_lens": last_ep_lens.tolist(),
-                                       "train/ep_rets": last_ep_returns.tolist(),
-                                       "train/mean_ep_len": np.mean(last_ep_lens),
-                                       "train/mean_ep_ret": np.mean(last_ep_returns)})
-                    step += num_envs
+                if (step - last_eval_step) >= self.eval_freq:
+                    last_eval_step = step
+                    self.evaluator.evaluate(self.eval_env, agent, self.eval_num_episodes, self.eval_seed,
+                                            functools.partial(callback.after_evaluate, step, agent))
+                state = next_state
+                callback.step_end(step,
+                                  {"train/ep_lens": last_ep_lens.tolist(),
+                                   "train/ep_rets": last_ep_returns.tolist(),
+                                   "train/mean_ep_len": np.mean(last_ep_lens),
+                                   "train/mean_ep_ret": np.mean(last_ep_returns)})
+                step += num_envs
         finally:
             env.close()
             callback.train_end()
