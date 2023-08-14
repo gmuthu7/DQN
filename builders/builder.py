@@ -12,6 +12,7 @@ from agents.double_dqn import DoubleDqn
 from agents.dqn import Dqn
 from agents.vfa.neural_network import NeuralNetworkVfa
 from builders.tune_config import DEFAULT_MLFLOW_TRACKING_URI
+from loggers.mlflow_logger import MlflowLogger
 from loggers.mlflow_ray_tune_logger import MlflowRayTuneLogger
 from loggers.ray_tune_logger import RayTuneLogger
 from policies.epsilon import EpsilonPolicy
@@ -42,6 +43,11 @@ class Builder:
     def mlflow_ray_tune_logger(self, track_metric: str, experiment_id: str, parent_run_id: str):
         self.logger = MlflowRayTuneLogger(track_metric, DEFAULT_MLFLOW_TRACKING_URI, experiment_id, parent_run_id,
                                           session.get_trial_dir())
+        return self
+
+    def mlflow_logger(self, experiment_id: str):
+        self.logger = MlflowLogger(DEFAULT_MLFLOW_TRACKING_URI, experiment_id, None,
+                                   "mlflow-direct")
         return self
 
     def experience_replay_buffer(self, buffer_size: int, batch_size: int):

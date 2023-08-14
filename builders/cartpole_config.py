@@ -1,56 +1,57 @@
 import torch
 
 CARTPOLE_CONFIG = {
-    "seed": 27,
-    "device": 'cuda' if torch.cuda.is_available() else 'cpu',
-    "exp_name": "DQN_Cartpole",
-    "env": {
-        "name": "CartPole-v1",
-        "num_envs": 4,
-        "gamma": 0.99,
-    },
     "agent": {
-        "name": "DoubleDqn",
-        "initial_no_learn_steps": 200,
-        "update_freq": 4,
-        "target_update_freq": 10_000,
-        "num_updates": 1,
         "buffer": {
-            "name": "ExperienceReplay",
-            "buffer_size": 1_000_000,
-            "batch_size": 32
+            "batch_size": 32,
+            "buffer_size": 3e6,
+            "name": "ExperienceReplay"
         },
+        "initial_no_learn_steps": 10000,
+        "name": "DoubleDqn",
+        "num_updates": 3,
+        "target_update_freq": 7500,
+        "update_freq": 4
     },
-    "trainer": {
-        "num_steps": 3_000_000,
-        "eval_freq": 5000,
-        "eval_num_episodes": 16,
+    "device": "cpu",
+    "env": {
+        "gamma": 0.99,
+        "name": "CartPole-v1",
+        "num_envs": 4
+    },
+    "exp_name": "DQN_Cartpole",
+    "logger": {
+        "experiment_id": "986264420638131783",
+        "log_every": 1000,
+        "name": "MlflowLogger"
     },
     "policy": {
-        "name": "EpsilonPolicy",
         "epsilon_scheduler": {
-            "name": "annealed_epsilon",
-            "end_epsilon": 0.1,
-            "anneal_finished_step": 1_000_000
-        }
+            "anneal_finished_step": 120000 * 3e6 / 217000.,
+            "end_epsilon": 0.028205027737306567,
+            "name": "annealed_epsilon"
+        },
+        "name": "EpsilonPolicy"
+    },
+    "seed": 27,
+    "trainer": {
+        "eval_freq": 1000,
+        "eval_num_episodes": 10,
+        "num_steps": 3e6
     },
     "vfa": {
+        "clip_grad_val": 0.0,
+        "loss_fn": {
+            "name": "SmoothL1Loss"
+        },
         "name": "NeuralNetworkVfa",
         "network": {
             "name": "SimpleNeuralNetwork",
             "num_hidden": 64
         },
-        "loss_fn": {
-            "name": "SmoothL1Loss"
-        },
         "optimizer": {
-            "name": "RMSprop",
-            "lr": 0.0025,
-        },
-        "clip_grad_val": 0.
-    },
-    "logger": {
-        "name": "RayTuneLogger",
-        "log_every": 10
+            "lr": 2.688501867522739e-05,
+            "name": "RMSprop"
+        }
     }
 }

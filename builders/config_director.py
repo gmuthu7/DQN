@@ -72,4 +72,6 @@ class ConfigDirector:
                 builder.ray_tune_logger(c.logger.track_metric)
             case "MlflowRayTuneLogger":
                 builder.mlflow_ray_tune_logger(c.logger.track_metric, c.logger.experiment_id, c.logger.parent_run_id)
+            case "MlflowLogger":
+                builder.mlflow_logger(c.logger.experiment_id)
         return self

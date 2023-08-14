@@ -7,20 +7,30 @@ from ray import tune
 SEARCH_NUM_STEPS = 217_000
 NO_LEARN = 10_000
 EVAL_FREQ = 500
+TARGET_UPDATE_MAX = 10000
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEARCH_SPACE = {
     "seed": 27,
-    "device": 'cuda' if torch.cuda.is_available() else 'cpu',
+    "device": DEVICE,
     "exp_name": "DQN_Cartpole",
+    "ray": {
+        "max_t": SEARCH_NUM_STEPS + 50,
+        "grace_period": NO_LEARN + 2 * TARGET_UPDATE_MAX + 500,
+        "reduction_factor": 3,
+        "num_samples": 100,
+        "cpu": 0.5,
+        "gpu": 1. / 32. if DEVICE == "cuda" else 0.
+    },
     "env": {
         "name": "CartPole-v1",
-        "num_envs": 4,
+        "num_envs": 32 if DEVICE == "cuda" else 4,
         "gamma": 0.99,
     },
     "agent": {
         "name": "DoubleDqn",
         "initial_no_learn_steps": NO_LEARN,
         "update_freq": tune.randint(1, 10),
-        "target_update_freq": tune.choice(np.arange(500, 10000, 1000)),
+        "target_update_freq": tune.choice(np.arange(500, TARGET_UPDATE_MAX, 1000)),
         "num_updates": tune.randint(1, 5),
         "buffer": {
             "name": "ExperienceReplay",

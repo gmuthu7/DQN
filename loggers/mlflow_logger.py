@@ -24,7 +24,7 @@ class MlflowAgentWrapper(mlflow.pyfunc.PythonModel):
 
 class MlflowLogger(Logger):
 
-    def __init__(self, tracking_uri: str, experiment_id: str, parent_run_id: str, tmp_dir: str):
+    def __init__(self, tracking_uri: str, experiment_id: str, parent_run_id: str | None, tmp_dir: str):
         os.environ["MLFLOW_TRACKING_URI"] = tracking_uri
         self.client = MlflowClient()
         self.tmp_dir = tmp_dir

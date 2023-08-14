@@ -1,8 +1,8 @@
 from typing import Dict
 
 from builders.builder import Builder
+from builders.cartpole_config import CARTPOLE_CONFIG
 from builders.config_director import ConfigDirector
-from builders.smoke_config import SMOKE_CONFIG
 
 
 def run(config: Dict):
@@ -15,4 +15,4 @@ def run(config: Dict):
 
 
 if __name__ == "__main__":
-    run(SMOKE_CONFIG)
+    run(CARTPOLE_CONFIG)
