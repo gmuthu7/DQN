@@ -20,7 +20,7 @@ from scripts.run import run
 # TODO: Disable tensorboard logging in ray tune and remove pbar/printing for performance improvement
 class MlflowRayTuner(RayTuner):
     def ray_tune(self, config: Dict, train_fn: Callable) -> ResultGrid:
-        ray.init(local_mode=True)
+        # ray.init(local_mode=True)
         run_id = None
         client = None
         try:

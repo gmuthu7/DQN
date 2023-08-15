@@ -1,10 +1,8 @@
-import torch
-
 CARTPOLE_CONFIG = {
     "agent": {
         "buffer": {
             "batch_size": 32,
-            "buffer_size": 3e6,
+            "buffer_size": 1e6,
             "name": "ExperienceReplay"
         },
         "initial_no_learn_steps": 10000,
@@ -27,7 +25,7 @@ CARTPOLE_CONFIG = {
     },
     "policy": {
         "epsilon_scheduler": {
-            "anneal_finished_step": 120000 * 3e6 / 217000.,
+            "anneal_finished_step": 1e6,
             "end_epsilon": 0.028205027737306567,
             "name": "annealed_epsilon"
         },
@@ -35,7 +33,7 @@ CARTPOLE_CONFIG = {
     },
     "seed": 27,
     "trainer": {
-        "eval_freq": 1000,
+        "eval_freq": 5000,
         "eval_num_episodes": 10,
         "num_steps": 3e6
     },
@@ -47,7 +45,7 @@ CARTPOLE_CONFIG = {
         "name": "NeuralNetworkVfa",
         "network": {
             "name": "SimpleNeuralNetwork",
-            "num_hidden": 64
+            "num_hidden": 128
         },
         "optimizer": {
             "lr": 2.688501867522739e-05,

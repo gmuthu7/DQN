@@ -4,9 +4,9 @@ import numpy as np
 import torch.nn
 from ray import tune
 
-SEARCH_NUM_STEPS = 217_000
+SEARCH_NUM_STEPS = 200_000
 NO_LEARN = 10_000
-EVAL_FREQ = 500
+EVAL_FREQ = 1000
 TARGET_UPDATE_MAX = 10000
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEARCH_SPACE = {
@@ -34,8 +34,8 @@ SEARCH_SPACE = {
         "num_updates": tune.randint(1, 5),
         "buffer": {
             "name": "ExperienceReplay",
-            "buffer_size": SEARCH_NUM_STEPS,
-            "batch_size": tune.choice([32, 256, 1024])
+            "buffer_size": tune.randint(10_000, SEARCH_NUM_STEPS),
+            "batch_size": tune.choice([32, 256, 512, 1024])
         },
     },
     "trainer": {
@@ -48,7 +48,7 @@ SEARCH_SPACE = {
         "epsilon_scheduler": {
             "name": "annealed_epsilon",
             "end_epsilon": tune.loguniform(0.001, 0.1),
-            "anneal_finished_step": tune.choice(np.arange(NO_LEARN + 10_000, SEARCH_NUM_STEPS, 5000))
+            "anneal_finished_step": tune.choice(np.arange(NO_LEARN + 10_000, SEARCH_NUM_STEPS - 50000, 5000))
         }
     },
     "vfa": {
@@ -62,9 +62,9 @@ SEARCH_SPACE = {
         },
         "optimizer": {
             "name": "RMSprop",
-            "lr": tune.loguniform(0.000001, 0.001),
+            "lr": tune.loguniform(1e-5, 1e-2),
         },
-        "clip_grad_val": tune.choice([0., 10.])
+        "clip_grad_val": tune.choice([0., 10., 20.])
     },
     "logger": {
         "name": "MlflowRayTuneLogger",
