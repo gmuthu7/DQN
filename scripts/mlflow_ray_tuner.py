@@ -33,7 +33,7 @@ class MlflowRayTuner(RayTuner):
                                                           max_t=config["ray"]["max_t"] + 50,
                                                           reduction_factor=config["ray"]["reduction_factor"])
             trainable_with_resources = tune.with_resources(train_fn, {"cpu": config["ray"]["cpu"],
-                                                                      "gpu": config["ray"]["max_t"]})
+                                                                      "gpu": config["ray"]["gpu"]})
             tuner = tune.Tuner(
                 trainable_with_resources,
                 param_space=config,
