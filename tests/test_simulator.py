@@ -49,3 +49,5 @@ def test_seeding():
     __, _ = env2.reset(seed=17)
     n1, *_ = env2.step([1, 0])
     assert np.array_equal(n1, n2)
+
+
