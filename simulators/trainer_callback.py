@@ -55,4 +55,6 @@ class TrainerCallback:
             self.best_eval = eval_perf
 
     def train_end(self):
+        for plotter in self.plotters.values():
+            plotter.close()
         self.logger.deinit()

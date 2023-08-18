@@ -69,4 +69,4 @@ class MlflowRayTuner(RayTuner):
 
 if __name__ == "__main__":
     tuner = MlflowRayTuner()
-    tuner.ray_tune(SMOKE_SEARCH_SPACE, run)
+    tuner.ray_tune(SEARCH_SPACE, run)

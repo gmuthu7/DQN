@@ -1,5 +1,4 @@
 import numpy as np
-import torch.nn
 from ray import tune
 
 SEARCH_NUM_STEPS = 4000
@@ -7,13 +6,13 @@ NO_LEARN = 100
 EVAL_FREQ = 500
 SMOKE_SEARCH_SPACE = {
     "seed": 27,
-    "device": 'cuda' if torch.cuda.is_available() else 'cpu',
+    "device": "mps",
     "ray": {
         "max_t": SEARCH_NUM_STEPS + 50,
         "grace_period": 200,
         "reduction_factor": 3,
-        "num_samples": 10,
-        "cpu": 0.5,
+        "num_samples": 12,
+        "cpu": 1,
         "gpu": 0.
     },
     "exp_name": "DQN_Cartpole",

@@ -1,5 +1,6 @@
 from typing import Iterable
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
@@ -25,3 +26,6 @@ class ErrorPlotter:
         self.ax.fill_between(self.x_axis, self.metrics_std + self.metrics_mean, self.metrics_mean - self.metrics_std,
                              color='gray', alpha=0.2)
         return self.fig
+
+    def close(self):
+        matplotlib.pyplot.close(self.fig)

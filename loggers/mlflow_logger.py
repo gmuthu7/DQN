@@ -1,8 +1,7 @@
 import os
 import time
-from typing import Dict
+from typing import Dict, Optional, Any
 
-import cloudpickle
 import mlflow
 from matplotlib.figure import Figure
 from mlflow.entities import Metric
@@ -18,7 +17,7 @@ class MlflowAgentWrapper(mlflow.pyfunc.PythonModel):
     def __init__(self, a: Agent):
         self.agent = a
 
-    def predict(self, context, model_input: ndarray):
+    def predict(self, context, model_input: ndarray, params: Optional[Dict[str, Any]] = None):
         return self.agent.act(model_input)
 
 

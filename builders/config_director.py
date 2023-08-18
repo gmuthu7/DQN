@@ -18,8 +18,8 @@ class ConfigDirector:
 
     def direct(self, builder: Builder):
         c = ConfigFromDict(self.config)
+        # builder.device(c.device)
         builder.env(c.env.name, c.env.num_envs)
-        builder.device(c.device)
         self._direct_logger(builder, c)
         self._direct_buffer(builder, c)
         self._direct_network(builder, c)

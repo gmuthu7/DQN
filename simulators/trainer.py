@@ -2,6 +2,7 @@ import functools
 
 import numpy as np
 from gymnasium import Env
+from gymnasium.vector import VectorEnv
 from gymnasium.wrappers import RecordEpisodeStatistics
 
 from agents.base_agent import Agent
@@ -19,7 +20,7 @@ class Trainer:
         self.eval_num_episodes = eval_num_episodes
         self.eval_seed = eval_seed
 
-    def train(self, env: Env, agent: Agent, num_steps: int, gamma: float, seed: int, callback: TrainerCallback):
+    def train(self, env: VectorEnv, agent: Agent, num_steps: int, gamma: float, seed: int, callback: TrainerCallback):
         try:
             callback.train_start()
             env = RecordEpisodeStatistics(env)

@@ -26,15 +26,15 @@ from simulators.trainer_callback import TrainerCallback
 class Builder:
 
     def env(self, env_name: str, num_envs: int):
-        self.train_env: VectorEnv = gym.vector.make(env_name, num_envs)
-        self.eval_env: VectorEnv = gym.vector.make(env_name, num_envs)
+        self.train_env: VectorEnv = gym.vector.SyncVectorEnv([lambda: gym.make(env_name)] * num_envs)
+        self.eval_env: VectorEnv = gym.vector.SyncVectorEnv([lambda: gym.make(env_name)] * num_envs)
         self.num_actions = self.train_env.single_action_space.n
         self.num_obs = self.train_env.single_observation_space.shape[0]
-        self.num_envs = self.train_env.num_envs
+        self.num_envs = num_envs
         return self
 
     def device(self, _device: str):
-        self._device = torch.device(_device)
+        torch.set_default_device(_device)
 
     def ray_tune_logger(self, track_metric: str):
         self.logger = RayTuneLogger(track_metric, session.get_trial_dir())
@@ -145,5 +145,5 @@ class Builder:
         self.simulator = Trainer(eval_freq, eval_num_episodes, self.eval_env, Evaluator(), self._seed)
         return self
 
-    def build(self) -> Tuple[Trainer, torch.device, TrainerCallback, VectorEnv, Agent, int, float, int]:
-        return self.simulator, self._device, self.callback, self.train_env, self.agent, self._num_steps, self._gamma, self._seed
+    def build(self) -> Tuple[Trainer, TrainerCallback, VectorEnv, Agent, int, float, int]:
+        return self.simulator, self.callback, self.train_env, self.agent, self._num_steps, self._gamma, self._seed

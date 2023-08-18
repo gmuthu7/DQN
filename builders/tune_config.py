@@ -1,14 +1,16 @@
 import os
 
 import numpy as np
-import torch.nn
 from ray import tune
+import torch
 
 SEARCH_NUM_STEPS = 200_000
 NO_LEARN = 10_000
 EVAL_FREQ = 1000
 TARGET_UPDATE_MAX = 10000
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+# DEVICE = "mps" if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu'
+DEVICE = "cpu"
+print("Using device ", DEVICE)
 SEARCH_SPACE = {
     "seed": 27,
     "device": DEVICE,
@@ -18,7 +20,7 @@ SEARCH_SPACE = {
         "grace_period": NO_LEARN + 2 * TARGET_UPDATE_MAX + 500,
         "reduction_factor": 3,
         "num_samples": 100,
-        "cpu": 0.5,
+        "cpu": 1,
         "gpu": 1. / 32. if DEVICE == "cuda" else 0.
     },
     "env": {
@@ -55,7 +57,7 @@ SEARCH_SPACE = {
         "name": "NeuralNetworkVfa",
         "network": {
             "name": "SimpleNeuralNetwork",
-            "num_hidden": 64
+            "num_hidden": tune.choice([64, 128])
         },
         "loss_fn": {
             "name": "SmoothL1Loss"
@@ -72,5 +74,5 @@ SEARCH_SPACE = {
         "track_metric": "eval/roll_mean_ep_ret"
     }
 }
-DEFAULT_STORAGE_DIRECTORY = os.path.expanduser("~/PycharmProjects/DQN/loggers/logs")
+DEFAULT_STORAGE_DIRECTORY = os.path.expanduser("~/Projects/DQN/loggers/logs")
 DEFAULT_MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
