@@ -16,11 +16,9 @@ from scripts.ray_tuner import RayTuner
 from scripts.run import run
 
 
-# TODO: Need a way to log checkpoint/model since its giving error now
-# TODO: Disable tensorboard logging in ray tune and remove pbar/printing for performance improvement
 class MlflowRayTuner(RayTuner):
     def ray_tune(self, config: Dict, train_fn: Callable) -> ResultGrid:
-        # ray.init(local_mode=True)
+        ray.init(local_mode=True)
         run_id = None
         client = None
         try:
@@ -69,4 +67,4 @@ class MlflowRayTuner(RayTuner):
 
 if __name__ == "__main__":
     tuner = MlflowRayTuner()
-    tuner.ray_tune(SEARCH_SPACE, run)
+    tuner.ray_tune(SMOKE_SEARCH_SPACE, run)

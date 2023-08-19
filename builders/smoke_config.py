@@ -6,7 +6,7 @@ NO_LEARN = 100
 EVAL_FREQ = 500
 SMOKE_SEARCH_SPACE = {
     "seed": 27,
-    "device": "mps",
+    "device": "cpu",
     "ray": {
         "max_t": SEARCH_NUM_STEPS + 50,
         "grace_period": 200,

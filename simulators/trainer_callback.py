@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+import numpy as np
 from ray._private.dict import flatten_dict
 
 from agents.base_agent import Agent
@@ -9,12 +10,11 @@ from loggers.logger import Logger
 
 class TrainerCallback:
     def __init__(self, logger: Logger, log_every: int, params: Dict):
-        self.params = flatten_dict(params)
+        self.params = params
         self.plotters: Dict[str, ErrorPlotter] = {}
         self.logger = logger
         self.best_eval = -1
-        self.roll_mean_ep_ret = 0.
-        self.count = 0
+        self.eval_mean_ep_ret = []
         self.step_metrics: Dict[str, Any] = {}
         self.log_every = log_every
         self.last_logged_step = 0
@@ -46,9 +46,9 @@ class TrainerCallback:
     def after_evaluate(self, step: int, agent: Agent, metrics: Dict):
         self.step_metrics.update(metrics)
         eval_perf = metrics["eval/mean_ep_ret"]
-        self.roll_mean_ep_ret += eval_perf
-        self.count += 1
-        self.step_metrics["eval/roll_mean_ep_ret"] = self.roll_mean_ep_ret / self.count
+        self.eval_mean_ep_ret.append(eval_perf)
+        self.step_metrics["eval/roll_mean_ep_ret"] = np.mean(self.eval_mean_ep_ret)
+        self.step_metrics["eval/roll_10_mean_ep_ret"] = np.mean(self.eval_mean_ep_ret[-10:])
         if eval_perf >= self.best_eval:
             self.logger.log_model(agent, step)
             self.step_metrics["eval/best_ep_ret"] = eval_perf

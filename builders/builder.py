@@ -28,7 +28,7 @@ class Builder:
     def env(self, env_name: str, num_envs: int):
         self.train_env: VectorEnv = gym.vector.SyncVectorEnv([lambda: gym.make(env_name)] * num_envs)
         self.eval_env: VectorEnv = gym.vector.SyncVectorEnv([lambda: gym.make(env_name)] * num_envs)
-        self.num_actions = self.train_env.single_action_space.n
+        self.num_actions = self.train_env.single_action_space.n.item()
         self.num_obs = self.train_env.single_observation_space.shape[0]
         self.num_envs = num_envs
         return self
@@ -98,7 +98,7 @@ class Builder:
         self.no_learn = initial_no_learn_steps
         return self
 
-    def annealed_epsilon(self, end_epsilon: int, anneal_finished_step: int):
+    def annealed_epsilon(self, end_epsilon: float, anneal_finished_step: int):
         def fn(initial_epsilon: float, end_epsilon: float, anneal_finished_step: int, step: int) -> float:
             return initial_epsilon + (end_epsilon - initial_epsilon) * min(1., step / anneal_finished_step)
 
@@ -108,7 +108,7 @@ class Builder:
                 1. - min(1., self.no_learn / anneal_finished_step))
         self.epsilon_scheduler = functools.partial(fn, initial_epsilon, end_epsilon, anneal_finished_step)
         return self
-
+    
     def epsilon_policy(self):
         action_sampler = lambda: torch.randint(0, self.num_actions, size=(self.num_envs,))
         greedy_policy = GreedyPolicy(self.vfa.val)

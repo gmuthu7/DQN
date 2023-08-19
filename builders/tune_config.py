@@ -71,7 +71,7 @@ SEARCH_SPACE = {
     "logger": {
         "name": "MlflowRayTuneLogger",
         "log_every": EVAL_FREQ,
-        "track_metric": "eval/roll_mean_ep_ret"
+        "track_metric": "eval/roll_10_mean_ep_ret"
     }
 }
 DEFAULT_STORAGE_DIRECTORY = os.path.expanduser("~/Projects/DQN/loggers/logs")
