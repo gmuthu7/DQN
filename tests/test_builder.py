@@ -3,10 +3,10 @@ from unittest.mock import patch, Mock
 
 import cloudpickle
 
-from builders.builder import Builder
-from builders.cartpole_config import CARTPOLE_CONFIG
-from builders.tune_config import SEARCH_SPACE
-from builders.config_director import ConfigDirector, ConfigFromDict
+from configs.builder import Builder
+from configs.cartpole_config import CARTPOLE_CONFIG
+from configs.tune_config import SEARCH_SPACE
+from configs.config_director import ConfigDirector, ConfigFromDict
 
 
 def test_builder():
@@ -16,7 +16,7 @@ def test_builder():
     return builder
 
 
-@patch("builders.builder.MlflowRayTuneLogger")
+@patch("configs.builder.MlflowRayTuneLogger")
 def test_pickle_agent(mock: Mock):
     builder = test_builder()
     res = cloudpickle.dumps(builder.agent)

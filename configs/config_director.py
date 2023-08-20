@@ -1,6 +1,6 @@
 from typing import Dict
 
-from builders.builder import Builder
+from configs.builder import Builder
 
 
 class ConfigFromDict:
@@ -24,6 +24,7 @@ class ConfigDirector:
         self._direct_buffer(builder, c)
         self._direct_network(builder, c)
         self._direct_optimizer(builder, c)
+        self._direct_loss_fn(builder, c)
         builder.l1_loss()
         builder.neural_network_vfa(c.vfa.clip_grad_val)
         builder.seed(c.seed)
@@ -74,4 +75,12 @@ class ConfigDirector:
                 builder.mlflow_ray_tune_logger(c.logger.track_metric, c.logger.experiment_id, c.logger.parent_run_id)
             case "MlflowLogger":
                 builder.mlflow_logger(c.logger.experiment_id)
+        return self
+
+    def _direct_loss_fn(self, builder, c: ConfigFromDict):
+        match c.agent.name:
+            case "SmoothL1Loss":
+                builder.l1_loss()
+            case "MSE":
+                builder.mse_loss()
         return self

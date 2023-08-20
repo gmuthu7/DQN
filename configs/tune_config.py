@@ -4,25 +4,19 @@ import numpy as np
 from ray import tune
 import torch
 
+from scripts.mlflow_ray_tuner import MlflowRayTuner
+from scripts.run import run
+
 SEARCH_NUM_STEPS = 200_000
 NO_LEARN = 10_000
 EVAL_FREQ = 1000
 TARGET_UPDATE_MAX = 10000
 # DEVICE = "mps" if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu'
 DEVICE = "cpu"
-print("Using device ", DEVICE)
 SEARCH_SPACE = {
     "seed": 27,
     "device": DEVICE,
     "exp_name": "DQN_Cartpole",
-    "ray": {
-        "max_t": SEARCH_NUM_STEPS + 50,
-        "grace_period": NO_LEARN + 2 * TARGET_UPDATE_MAX + 500,
-        "reduction_factor": 3,
-        "num_samples": 100,
-        "cpu": 1,
-        "gpu": 1. / 32. if DEVICE == "cuda" else 0.
-    },
     "env": {
         "name": "CartPole-v1",
         "num_envs": 32 if DEVICE == "cuda" else 4,
@@ -60,7 +54,7 @@ SEARCH_SPACE = {
             "num_hidden": tune.choice([64, 128])
         },
         "loss_fn": {
-            "name": "SmoothL1Loss"
+            "name": "MSE"
         },
         "optimizer": {
             "name": "RMSprop",
@@ -72,7 +66,17 @@ SEARCH_SPACE = {
         "name": "MlflowRayTuneLogger",
         "log_every": EVAL_FREQ,
         "track_metric": "eval/roll_10_mean_ep_ret"
-    }
+    },
+    "ray": {
+        "max_t": SEARCH_NUM_STEPS + 50,
+        "grace_period": NO_LEARN + 2 * TARGET_UPDATE_MAX + 500,
+        "reduction_factor": 3,
+        "num_samples": 100,
+        "cpu": 1,
+        "gpu": 1. / 32. if DEVICE == "cuda" else 0.
+    },
 }
-DEFAULT_STORAGE_DIRECTORY = os.path.expanduser("~/Projects/DQN/loggers/logs")
-DEFAULT_MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+
+if __name__ == "__main__":
+    tuner = MlflowRayTuner()
+    tuner.ray_tune(SEARCH_SPACE, run)

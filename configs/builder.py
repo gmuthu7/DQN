@@ -11,7 +11,7 @@ from agents.buffers.experience_replay import ExperienceReplay
 from agents.double_dqn import DoubleDqn
 from agents.dqn import Dqn
 from agents.vfa.neural_network import NeuralNetworkVfa
-from builders.tune_config import DEFAULT_MLFLOW_TRACKING_URI
+from configs.root_config import DEFAULT_MLFLOW_TRACKING_URI, DEFAULT_STORAGE_DIRECTORY
 from loggers.mlflow_logger import MlflowLogger
 from loggers.mlflow_ray_tune_logger import MlflowRayTuneLogger
 from loggers.ray_tune_logger import RayTuneLogger
@@ -47,7 +47,7 @@ class Builder:
 
     def mlflow_logger(self, experiment_id: str):
         self.logger = MlflowLogger(DEFAULT_MLFLOW_TRACKING_URI, experiment_id, None,
-                                   "mlflow-direct")
+                                   DEFAULT_STORAGE_DIRECTORY)
         return self
 
     def experience_replay_buffer(self, buffer_size: int, batch_size: int):
@@ -86,6 +86,10 @@ class Builder:
         self.loss_fn = torch.nn.SmoothL1Loss()
         return self
 
+    def mse_loss(self):
+        self.loss_fn = torch.nn.MSELoss()
+        return self
+
     def neural_network_vfa(self, clip_grad_val: float):
         self.vfa = NeuralNetworkVfa(self.network, self.loss_fn, self.optimizer, None, clip_grad_val)
         return self
@@ -108,9 +112,11 @@ class Builder:
                 1. - min(1., self.no_learn / anneal_finished_step))
         self.epsilon_scheduler = functools.partial(fn, initial_epsilon, end_epsilon, anneal_finished_step)
         return self
-    
+
     def epsilon_policy(self):
-        action_sampler = lambda: torch.randint(0, self.num_actions, size=(self.num_envs,))
+        num_actions = self.num_actions
+        num_envs = self.num_envs
+        action_sampler = lambda: torch.randint(0, num_actions, size=(num_envs,))
         greedy_policy = GreedyPolicy(self.vfa.val)
         self.policy = EpsilonPolicy(self.epsilon_scheduler, action_sampler, greedy_policy)
         return self

@@ -1,4 +1,4 @@
-from builders.tune_config import CARTPOLE_CONFIG, SEARCH_SPACE
+from configs.tune_config import CARTPOLE_CONFIG, SEARCH_SPACE
 from scripts.run import run
 from scripts.ray_tuner import ray_tune
 

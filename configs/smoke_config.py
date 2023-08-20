@@ -1,6 +1,9 @@
 import numpy as np
 from ray import tune
 
+from scripts.mlflow_ray_tuner import MlflowRayTuner
+from scripts.run import run
+
 SEARCH_NUM_STEPS = 4000
 NO_LEARN = 100
 EVAL_FREQ = 500
@@ -81,3 +84,7 @@ SMOKE_CONFIG = {'seed': 27, 'device': 'cpu', 'exp_name': 'DQN_Cartpole',
                         'loss_fn': {'name': 'SmoothL1Loss'},
                         'optimizer': {'name': 'RMSprop', 'lr': 0.48535532171538653}, 'clip_grad_val': 0.0},
                 'logger': {'name': 'RayTuneLogger', 'log_every': 10}}
+
+if __name__ == "__main__":
+    tuner = MlflowRayTuner()
+    tuner.ray_tune(SMOKE_SEARCH_SPACE, run)

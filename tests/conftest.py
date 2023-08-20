@@ -7,7 +7,7 @@ import torch
 from agents.buffers.experience_replay import ExperienceReplay
 from agents.double_dqn import DoubleDqn
 from agents.vfa.neural_network import NeuralNetworkVfa
-from builders.builder import Builder
+from configs.builder import Builder
 from loggers.utility import set_random_all
 
 

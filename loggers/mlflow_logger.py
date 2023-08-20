@@ -1,10 +1,8 @@
-import json
 import os
 import time
 from typing import Dict, Optional, Any
 
 import mlflow
-import cloudpickle
 from matplotlib.figure import Figure
 from mlflow.entities import Metric
 from mlflow.tracking import MlflowClient
@@ -13,6 +11,7 @@ from ray._private.dict import flatten_dict
 
 from agents.base_agent import Agent
 from loggers.logger import Logger
+import cloudpickle
 
 
 class MlflowAgentWrapper(mlflow.pyfunc.PythonModel):
@@ -54,7 +53,11 @@ class MlflowLogger(Logger):
         self.client.log_batch(run_id=self.run_id, metrics=metrics)
 
     def log_model(self, agent: Agent, step: int):
-        mlflow.pyfunc.log_model(python_model=MlflowAgentWrapper(agent), artifact_path="model")
+        artifact_path = "agent.pkl"
+        local_path = os.path.join(self.tmp_dir, artifact_path)
+        with open(os.path.join(local_path), "wb") as f:
+            cloudpickle.dump(agent, f)
+        self.client.log_artifact(self.run_id, local_path)
 
     def log_figure(self, fig: Figure, step: int):
         artifact_path = f"{fig._suptitle.get_text()}.png"

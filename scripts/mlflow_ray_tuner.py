@@ -9,11 +9,9 @@ from ray.tune import ResultGrid
 from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.search.hyperopt import HyperOptSearch
 
-from builders.smoke_config import SMOKE_SEARCH_SPACE
-from builders.tune_config import SEARCH_SPACE, DEFAULT_MLFLOW_TRACKING_URI
+from configs.root_config import DEFAULT_MLFLOW_TRACKING_URI
 from loggers.ray_tune_logger_callback import RayTuneLoggerCallback
 from scripts.ray_tuner import RayTuner
-from scripts.run import run
 
 
 class MlflowRayTuner(RayTuner):
@@ -63,8 +61,3 @@ class MlflowRayTuner(RayTuner):
         config["logger"]["parent_run_id"] = run_id
         config["logger"]["experiment_id"] = experiment_id
         return run_id, client
-
-
-if __name__ == "__main__":
-    tuner = MlflowRayTuner()
-    tuner.ray_tune(SMOKE_SEARCH_SPACE, run)

@@ -10,8 +10,7 @@ from ray.tune import ResultGrid
 from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.search.hyperopt import HyperOptSearch
 
-from builders.tune_config import SEARCH_SPACE, DEFAULT_STORAGE_DIRECTORY, DEFAULT_MLFLOW_TRACKING_URI
-from scripts.run import run
+from configs.root_config import DEFAULT_STORAGE_DIRECTORY, DEFAULT_MLFLOW_TRACKING_URI
 
 
 # TODO: Need a way to log figure and checkpoint/model since its giving error now
@@ -65,8 +64,3 @@ class RayTuner:
         print(f"Running tensorboard at " + "http://localhost:6006")
         os.system("pkill -f tensorboad")
         subprocess.Popen(["tensorboard", "--logdir", f"{logdir}"])
-
-
-if __name__ == "__main__":
-    tuner = RayTuner()
-    tuner.ray_tune(SEARCH_SPACE, run)
