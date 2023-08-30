@@ -14,6 +14,9 @@ from loggers.ray_tune_logger_callback import RayTuneLoggerCallback
 from scripts.ray_tuner import RayTuner
 
 
+# TODO: Remove env seed
+# TODO: First try it out on gridworld
+# TODO: Switch to normal DQN or 4 network DQN if can be done
 class MlflowRayTuner(RayTuner):
     def ray_tune(self, config: Dict, train_fn: Callable) -> ResultGrid:
         ray.init(local_mode=True)
