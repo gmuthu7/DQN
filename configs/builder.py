@@ -4,6 +4,7 @@ from typing import Tuple, Dict
 import gymnasium as gym
 import torch
 from gymnasium.vector import VectorEnv
+from gymnasium.wrappers import RecordEpisodeStatistics
 from ray.air import session
 
 from agents.base_agent import Agent
@@ -26,8 +27,8 @@ from simulators.trainer_callback import TrainerCallback
 class Builder:
 
     def env(self, env_name: str, num_envs: int):
-        self.train_env: VectorEnv = gym.vector.SyncVectorEnv([lambda: gym.make(env_name)] * num_envs)
-        self.eval_env: VectorEnv = gym.vector.SyncVectorEnv([lambda: gym.make(env_name)] * num_envs)
+        self.train_env: VectorEnv = gym.vector.make(env_name, num_envs, wrappers=RecordEpisodeStatistics)
+        self.eval_env: VectorEnv = gym.vector.make(env_name, num_envs, wrappers=RecordEpisodeStatistics)
         self.num_actions = self.train_env.single_action_space.n.item()
         self.num_obs = self.train_env.single_observation_space.shape[0]
         self.num_envs = num_envs

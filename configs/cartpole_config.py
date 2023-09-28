@@ -47,7 +47,7 @@ CARTPOLE_CONFIG = {
             "name": "RMSprop",
             "lr": 0.000020938957328931204
         },
-        "clip_grad_val": 1.
+        "clip_grad_val": 50.
     },
     "logger": {
         "name": "MlflowLogger",

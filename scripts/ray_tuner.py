@@ -17,7 +17,7 @@ from configs.root_config import DEFAULT_STORAGE_DIRECTORY, DEFAULT_MLFLOW_TRACKI
 # TODO: Find a way to disconnect log_every and eval_freq aka separate out mlflow and ray tune logging
 # TODO: Nested runs
 # TODO: Remove config from metrics by implementing logger callback,
-# TODO: also close env so that it doesnt throw that damn error
+# TODO: also close env so that it doesnt throw that error
 
 class RayTuner:
     def ray_tune(self, config: Dict, train_fn: Callable) -> ResultGrid:

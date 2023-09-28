@@ -1,6 +1,8 @@
 import functools
+import random
 
 import numpy as np
+import torch
 from gymnasium import Env
 from gymnasium.vector import VectorEnv
 from gymnasium.wrappers import RecordEpisodeStatistics
@@ -24,7 +26,7 @@ class Trainer:
         try:
             callback.train_start()
             env = RecordEpisodeStatistics(env)
-            state, info = env.reset(seed=seed)
+            state, info = self._seed_everything(env, seed)
             num_envs = state.shape[0]
             last_ep_returns = np.zeros(num_envs)
             last_ep_lens = np.zeros(num_envs)
@@ -59,3 +61,10 @@ class Trainer:
         finally:
             env.close()
             callback.train_end()
+
+    def _seed_everything(self, env: VectorEnv, seed):
+        random.seed(seed)
+        torch.manual_seed(seed)
+        torch.use_deterministic_algorithms(True)
+        np.random.seed(seed)
+        return env.reset(seed=seed)
