@@ -14,8 +14,8 @@ from agents.dqn import Dqn
 from agents.vfa.neural_network import NeuralNetworkVfa
 from configs.root_config import DEFAULT_MLFLOW_TRACKING_URI, DEFAULT_STORAGE_DIRECTORY
 from loggers.mlflow_logger import MlflowLogger
-from loggers.mlflow_ray_tune_logger import MlflowRayTuneLogger
-from loggers.ray_tune_logger import RayTuneLogger
+from loggers.mlflow_ray_logger import MlflowRayTuneLogger
+from loggers.ray_logger import RayTuneLogger
 from policies.epsilon import EpsilonPolicy
 from policies.greedy import GreedyPolicy
 from simulators.evaluator import Evaluator

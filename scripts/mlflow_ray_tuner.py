@@ -10,7 +10,7 @@ from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.search.hyperopt import HyperOptSearch
 
 from configs.root_config import DEFAULT_MLFLOW_TRACKING_URI
-from loggers.ray_tune_logger_callback import RayTuneLoggerCallback
+from loggers.ray_logger_callback import RayTuneLoggerCallback
 from scripts.ray_tuner import RayTuner
 
 

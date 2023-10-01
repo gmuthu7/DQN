@@ -1,7 +1,7 @@
 from typing import Dict
 
 from loggers.mlflow_logger import MlflowLogger
-from loggers.ray_tune_logger import RayTuneLogger
+from loggers.ray_logger import RayTuneLogger
 
 
 class MlflowRayTuneLogger(MlflowLogger):

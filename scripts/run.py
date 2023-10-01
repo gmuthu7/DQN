@@ -7,7 +7,6 @@ from configs.config_director import ConfigDirector
 
 
 def run(config: Dict):
-    print("Using device ", config["device"])
     with torch.device(config["device"]):
         config_director = ConfigDirector(config)
         builder = Builder()
