@@ -13,25 +13,25 @@ CARTPOLE_CONFIG = {
         "name": "DoubleDqn",
         "initial_no_learn_steps": 10000,
         "update_freq": 8,
-        "target_update_freq": 10000,
+        "target_update_freq": 2000,
         "num_updates": 4,
         "buffer": {
             "name": "ExperienceReplay",
-            "buffer_size": 128_000,
-            "batch_size": 1024
+            "buffer_size": 256_000,
+            "batch_size": 32
         }
     },
     "trainer": {
-        "num_steps": int(2e6),
+        "num_steps": int(1e6),
         "eval_freq": 1000,
-        "eval_num_episodes": 10
+        "eval_num_episodes": 20
     },
     "policy": {
         "name": "EpsilonPolicy",
         "epsilon_scheduler": {
             "name": "annealed_epsilon",
-            "end_epsilon": 0.004758193119830186,
-            "anneal_finished_step": 30000 * 2e6 / 200000
+            "end_epsilon": 0.1,
+            "anneal_finished_step": 500_000
         }
     },
     "vfa": {
@@ -41,11 +41,11 @@ CARTPOLE_CONFIG = {
             "num_hidden": 128
         },
         "loss_fn": {
-            "name": "SmoothL1Loss"
+            "name": "MSELoss"
         },
         "optimizer": {
             "name": "RMSprop",
-            "lr": 0.000020938957328931204
+            "lr": 1e-5
         },
         "clip_grad_val": 50.
     },

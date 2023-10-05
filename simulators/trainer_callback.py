@@ -45,6 +45,7 @@ class TrainerCallback:
 
     def after_evaluate(self, step: int, agent: Agent, metrics: Dict):
         self.step_metrics.update(metrics)
+        self.last_logged_step = 0
         eval_perf = metrics["eval/mean_ep_ret"]
         self.eval_mean_ep_ret.append(eval_perf)
         self.step_metrics["eval/roll_mean_ep_ret"] = np.mean(self.eval_mean_ep_ret)

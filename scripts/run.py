@@ -3,7 +3,7 @@ from typing import Dict
 import torch
 
 from configs.builder import Builder
-from configs.config_director import ConfigDirector
+from configs.director import ConfigDirector
 
 
 def run(config: Dict):

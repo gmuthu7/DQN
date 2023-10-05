@@ -81,6 +81,6 @@ class ConfigDirector:
         match c.agent.name:
             case "SmoothL1Loss":
                 builder.l1_loss()
-            case "MSE":
+            case "MSELoss":
                 builder.mse_loss()
         return self

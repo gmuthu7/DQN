@@ -62,14 +62,10 @@ class Builder:
             torch.nn.Linear(num_inputs, num_hidden),
             torch.nn.ReLU(),
             torch.nn.Linear(num_hidden, num_hidden),
+            torch.nn.Dropout(),
             torch.nn.ReLU(),
-            torch.nn.Linear(num_hidden, num_hidden * 2),
-            torch.nn.ReLU(),
-            torch.nn.Linear(num_hidden * 2, num_hidden * 4),
-            torch.nn.ReLU(),
-            torch.nn.Linear(num_hidden * 4, num_hidden * 2),
-            torch.nn.ReLU(),
-            torch.nn.Linear(num_hidden * 2, num_hidden),
+            torch.nn.Linear(num_hidden, num_hidden),
+            torch.nn.Dropout(),
             torch.nn.ReLU(),
             torch.nn.Linear(num_hidden, num_outputs)
         )

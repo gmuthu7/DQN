@@ -6,7 +6,7 @@ import cloudpickle
 from configs.builder import Builder
 from configs.cartpole_config import CARTPOLE_CONFIG
 from configs.tune_config import SEARCH_SPACE
-from configs.config_director import ConfigDirector, ConfigFromDict
+from configs.director import ConfigDirector, ConfigFromDict
 
 
 def test_builder():
